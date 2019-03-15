@@ -10,6 +10,9 @@ public class Connection_DB {
 	static String serverName="localhost";
 	static String portNumber="3306";
 	
+	
+	
+	
 	public static Connection getConnection(String db){
 		int counter =5;
 		Connection conn =null;
