@@ -1,4 +1,5 @@
 package Database;
+
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -8,7 +9,7 @@ import java.util.HashMap;
 
 //Generic Functions
 //If any exception occurs while executing a query return a null
-public class MyFunctions {
+public class Utilities {
 
 	@SuppressWarnings("unchecked")
 	public static <T> ArrayList<T> getList(Connection conn, String query, String item, T args) {

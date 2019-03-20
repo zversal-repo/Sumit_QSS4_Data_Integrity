@@ -2,14 +2,14 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 
-import Connection_DB.Connection_DB;
+import Connection_DB.ConnectionDB;
 import IntegrityChecks.DataIntegrityChecks;
 
 public class Main {
 	public static void main(String[] args) throws SQLException {
 
 		ArrayList<Long> list;
-		Connection_DB connection = new Connection_DB();
+		ConnectionDB connection = new ConnectionDB();
 		Connection conn = connection.getConnection();
 
 		if (conn != null) {
@@ -18,10 +18,6 @@ public class Main {
 
 				if (list.isEmpty() == true) {
 					System.out.println("No result");
-				} else {
-					for (Long i : list) {
-						System.out.println(i);
-					}
 				}
 			}
 

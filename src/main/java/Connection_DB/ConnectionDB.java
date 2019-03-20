@@ -7,7 +7,7 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Properties;
 
-public class Connection_DB {
+public class ConnectionDB {
 
 	// To get Connection to the database
 	public Connection getConnection() {

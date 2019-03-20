@@ -1,63 +1,70 @@
 package IntegrityChecks;
+
 import java.sql.Connection;
 import java.util.ArrayList;
-import java.util.HashMap;
 
-import Database.User_Product;
+import Database.UserProduct;
 import Database.Users;
-import TablesStatusCode.UserStatus;
-import TablesStatusCode.User_ProductStatus;
 
 public class DataIntegrityChecks {
 
 	// Function return list of data_firm_id=3 users which are active and but does
 	// not contain all
-	// mandatory products{1,2,7,8} or some of them are not active
+	// mandatory activeProducts{1,2,7,8} or some of them are not active
 	// Function return null if any Exception occurs during Query Execution
 
 	public static ArrayList<Long> Karma_product_check(Connection conn) {
 
-		// ArrayList for Karma users who do not have atleast one out of{1,2,7,8}
+		// ArrayList for Karma users who have all products of{1,2,7,8}
 		ArrayList<Long> user = new ArrayList<>();
-		ArrayList<Long> activeUsers = new ArrayList<>();
+		ArrayList<Long> activeUsers;
 		ArrayList<Long> product = new ArrayList<>(); // ArrayList for product {1,2,7,8}
-		HashMap<Long, Integer> status; // HashMap for user status
-		HashMap<Long, ArrayList<Long>> products;
-		HashMap<Long, HashMap<Long, Integer>> user_product_status;
-		ArrayList<Long> users;
+		ArrayList<Long> activeProducts;
 
 		product.add(1L);
 		product.add(2L);
 		product.add(7L);
 		product.add(8L);
 
-		if (((users = Users.getUsersForData_firm_id(conn, "3")) != null)
-				&& ((status = Users.getUsers_Status(conn)) != null)
-				&& ((products = User_Product.getUsersWithProducts(conn)) != null)
-				&& ((user_product_status = User_Product.getUsersProductCurrentStatus(conn)) != null)) {
+		// Check if SQL query is executed successfully
+		if ((activeUsers = Users.getActiveUsersForData_firm_id(conn, "3")) != null) {
 
-			for (Long i : users) {
-				if (status.get(i) == UserStatus.Active.getStatusCode()) { // Check whether the user is active or not
-					if (products.get(i).containsAll(product)) { // Check whether the user have all mandatory products
-						int flag = 1;
-						for (Long j : product) { // Check whether all products are in active state
-							if (!(user_product_status.get(i).get(j) == User_ProductStatus.Access.getStatusCode())) {
-								flag = flag * 0;
-							}
-						}
-						if (flag == 1) {
-							user.add(i);
-						}
+			for (Long i : activeUsers) {
+				System.out.println("User_id:" + i + "  has active activeProducts");
+				System.out.println("\t");
+
+				// For each active user fetch the list of active activeProducts
+				if ((activeProducts = UserProduct.getActiveProductsForUser_id(conn, String.valueOf(i))) != null) {
+
+					for (Long j : activeProducts) {
+						System.out.print(j + "\t");
+					}
+
+					// Check if the activeProducts list contains mandatory activeProducts
+					if (activeProducts.containsAll(product)) { // Check whether the user have all mandatory
+																// activeProducts
+						user.add(i);
 
 					}
-					activeUsers.add(i);
+					System.out.println();
+
 				}
 			}
+
+			// Removing all the users from active users which have {1,2,7,8} products active
+
 			activeUsers.removeAll(user);
-			return users;
+			
+			System.out.println(
+					"\n\n" + "Following active users of data_firm_id = 3 doesn't have product_id ={1,2,7,8}\n");
+			for (Long i : activeUsers) {
+				System.out.println(i);
+			}
+
+			return activeUsers;
+
 		} else {
 			return null;
 		}
-
 	}
 }

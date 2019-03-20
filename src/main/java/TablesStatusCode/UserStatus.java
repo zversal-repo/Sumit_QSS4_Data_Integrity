@@ -9,7 +9,7 @@ public enum UserStatus {
 		this.statusCode = statusCode;
 	}
 
-	public int getStatusCode() {
+	public int getStatus() {
 		return this.statusCode;
 	}
 
