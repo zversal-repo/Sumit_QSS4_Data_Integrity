@@ -35,12 +35,13 @@ public class UserProduct {
 	}
 
 	public static ArrayList<Long> getActiveProductsForUser_id(Connection conn, String user_id) {
-		String query = "SELECT m3.* FROM (SELECT *,MAX(creation_time) AS m2 FROM user_product WHERE user_id = "
-				+ user_id + " AND creation_time<NOW() \r\n"
-				+ "	GROUP BY product_id) m1 INNER JOIN user_product AS m3 \r\n"
+		
+		String query = "SELECT m4.* FROM (SELECT m3.* FROM (SELECT *,MAX(creation_time) AS m2 FROM user_product WHERE user_id ="+user_id
+				+ "	GROUP BY user_id,product_id) m1 INNER JOIN user_product AS m3 \r\n"
 				+ "	ON m3.user_id=m1.user_id AND m1.product_id=m3.product_id AND m1.m2 = m3.creation_time\r\n"
-				+ "	WHERE m3.status=" + String.valueOf(UserProductStatus.Access.getStatus())
-				+ "        GROUP BY m3.product_id HAVING m3.transaction_id = MIN(m3.transaction_id) ORDER BY user_id,product_id;";
+				+ "	\r\n"
+				+ "        GROUP BY m3.product_id HAVING m3.transaction_id = MIN(m3.transaction_id) ORDER BY user_id,product_id )m4 WHERE m4.status="+
+				String.valueOf(UserProductStatus.Access.getStatus());
 
 		return Utilities.getList(conn, query, "product_id", 1L);
 
