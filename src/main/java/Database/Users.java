@@ -53,11 +53,13 @@ public class Users {
 		return Utilities.getMap(conn, query, "data_firm_id", "user_id", 1L, 1L);
 	}
 
+	// Function for getting user status for a particular data_firm in the database
 	public static HashMap<Long, Integer> getUserStatusForData_firm_id(Connection conn, String data_firm_id) {
 		String query = "SELECT user_id,status FROM users WHERE data_firm_id = " + data_firm_id + " ORDER BY user_id";
 		return Utilities.getOne_OneMap(conn, query, "user_id", "status", 1L, 1);
 	}
-
+	
+	// Function for getting only active users for data_firm in the database
 	public static ArrayList<Long> getActiveUsersForData_firm_id(Connection conn, String data_firm_id) {
 		String query = "SELECT user_id FROM users WHERE data_firm_id = " + data_firm_id + " AND STATUS ="
 				+ UserStatus.Active.getStatus() + " ORDER BY user_id";

@@ -16,6 +16,7 @@ public class ProductService {
 
 	}
 
+	// Function for getting all services for a particular product in the database
 	public static ArrayList<Long> getServices(Connection conn, String product_id) {
 
 		String query = "SELECT DISTINCT service_id FROM product_service WHERE product_id =" + product_id

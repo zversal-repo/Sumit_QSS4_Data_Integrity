@@ -25,7 +25,8 @@ public class UserProduct {
 		return Utilities.getMap(conn, query, "user_id", "product_id", 1L, 1L);
 
 	}
-
+	
+	// Function for getting current status for all available products in the database
 	public static HashMap<Long, HashMap<Long, Integer>> getProductCurrentStatus(Connection conn) {
 		String query = "SELECT m1.* FROM user_product AS m1 INNER JOIN (SELECT *,MAX(creation_time) AS m3 FROM user_product WHERE creation_time<NOW() GROUP BY user_id,product_id) m2 \r\n"
 				+ "ON m1.user_id=m2.user_id AND m1.product_id=m2.product_id AND m1.creation_time=m2.m3 \r\n"
@@ -34,6 +35,7 @@ public class UserProduct {
 
 	}
 
+	// Function for getting all active products for a user in the database
 	public static ArrayList<Long> getActiveProductsForUser_id(Connection conn, String user_id) {
 		
 		String query = "SELECT m4.* FROM (SELECT m3.* FROM (SELECT *,MAX(creation_time) AS m2 FROM user_product WHERE user_id ="+user_id

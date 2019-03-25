@@ -41,6 +41,7 @@ public class ConnectionDB {
 
 			// loop for try to connect to SQL server atleast 5 times
 			while (counter != 0) {
+
 				try {
 					conn = DriverManager.getConnection(
 							"jdbc:" + dbSystem + "://" + serverName + ":" + port + "/" + database, userName, password);
@@ -50,12 +51,8 @@ public class ConnectionDB {
 				} catch (SQLException e) {
 					System.out.println(e.toString());
 					counter--;
-
 				}
-
 			}
-			return conn;
-
 		} catch (IOException ex) {
 
 			System.out.println(ex.toString());
@@ -72,7 +69,7 @@ public class ConnectionDB {
 			}
 
 		}
-		return null;
+		return conn;
 	}
 
 	// Function to close a connection

@@ -173,4 +173,39 @@ public class Utilities {
 		return map;
 	}
 
+	@SuppressWarnings("unchecked")
+	public static <T> T getValue(Connection conn, String query, String item1, T arg1) {
+		Statement stmt = null;
+		ResultSet rs = null;
+		T param1 = null;
+
+		try {
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(query);
+			while (rs.next()) {
+				param1 = (T) rs.getObject(item1);
+			}
+
+		} catch (SQLException e) {
+			System.out.println(e.toString());
+			return null;
+		} finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException e) {
+					/* ignored */}
+			}
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					System.out.println(e.toString());
+				}
+			}
+		}
+
+		return param1;
+	}
+
 }
