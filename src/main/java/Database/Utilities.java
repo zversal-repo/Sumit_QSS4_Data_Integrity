@@ -1,24 +1,31 @@
 package Database;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import Connection_DB.Connect;
 
 //Generic Functions
 //If any exception occurs while executing a query return a null
 public class Utilities {
 
 	@SuppressWarnings("unchecked")
-	public static <T> ArrayList<T> getList(Connection conn, String query, String item, T args) {
-		Statement stmt = null;
+	public static <T> ArrayList<T> getList(String query, String item, T args) throws IOException, SQLException {
+
+		
+		Connection conn = Connect.getConnection();
+
+		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		ArrayList<T> list = new ArrayList<>();
 		try {
-			stmt = conn.createStatement();
-			rs = stmt.executeQuery(query);
+			stmt = conn.prepareStatement(query);
+			rs = stmt.executeQuery();
 			while (rs.next()) {
 				list.add((T) rs.getObject(item));
 			}
@@ -27,6 +34,7 @@ public class Utilities {
 			System.out.println(e.toString());
 			return null;
 		} finally {
+
 			if (rs != null) {
 				try {
 					rs.close();
@@ -40,6 +48,8 @@ public class Utilities {
 					System.out.println(e.toString());
 				}
 			}
+
+			
 		}
 
 		return list;
@@ -47,14 +57,16 @@ public class Utilities {
 
 	// Function for One-One Relationship
 	@SuppressWarnings("unchecked")
-	public static <T1, T2> HashMap<T1, T2> getOne_OneMap(Connection conn, String query, String item1, String item2,
-			T1 arg1, T2 arg2) {
-		Statement stmt = null;
+	public static <T1, T2> HashMap<T1, T2> getOne_OneMap(String query, String item1, String item2, T1 arg1, T2 arg2) throws IOException, SQLException {
+
+		Connection conn = Connect.getConnection();
+
+		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		HashMap<T1, T2> map = new HashMap<>();
 		try {
-			stmt = conn.createStatement();
-			rs = stmt.executeQuery(query);
+			stmt = conn.prepareStatement(query);
+			rs = stmt.executeQuery();
 			while (rs.next()) {
 				T1 param1 = (T1) rs.getObject(item1);
 				T2 param2 = (T2) rs.getObject(item2);
@@ -78,6 +90,7 @@ public class Utilities {
 					System.out.println(e.toString());
 				}
 			}
+			
 		}
 
 		return map;
@@ -85,14 +98,17 @@ public class Utilities {
 
 	// Function for One-Many Relationship
 	@SuppressWarnings("unchecked")
-	public static <T1, T2> HashMap<T1, ArrayList<T2>> getMap(Connection conn, String query, String item1, String item2,
-			T1 arg1, T2 arg2) {
-		Statement stmt = null;
+	public static <T1, T2> HashMap<T1, ArrayList<T2>> getMap(String query, String item1, String item2, T1 arg1,
+			T2 arg2) throws IOException, SQLException {
+
+		Connection conn = Connect.getConnection();
+
+		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		HashMap<T1, ArrayList<T2>> map = new HashMap<>();
 		try {
-			stmt = conn.createStatement();
-			rs = stmt.executeQuery(query);
+			stmt = conn.prepareStatement(query);
+			rs = stmt.executeQuery();
 			while (rs.next()) {
 				T1 param1 = (T1) rs.getObject(item1);
 				T2 param2 = (T2) rs.getObject(item2);
@@ -123,20 +139,24 @@ public class Utilities {
 					System.out.println(e.toString());
 				}
 			}
+			
 		}
 
 		return map;
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T1, T2, T3> HashMap<T1, HashMap<T2, T3>> getMap(Connection conn, String query, String item1,
-			String item2, String item3, T1 arg1, T2 arg2, T3 arg3) {
-		Statement stmt = null;
+	public static <T1, T2, T3> HashMap<T1, HashMap<T2, T3>> getMap(String query, String item1, String item2,
+			String item3, T1 arg1, T2 arg2, T3 arg3) throws IOException, SQLException {
+
+		Connection conn = Connect.getConnection();
+
+		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		HashMap<T1, HashMap<T2, T3>> map = new HashMap<>();
 		try {
-			stmt = conn.createStatement();
-			rs = stmt.executeQuery(query);
+			stmt = conn.prepareStatement(query);
+			rs = stmt.executeQuery();
 			while (rs.next()) {
 				T1 param1 = (T1) rs.getObject(item1);
 				T2 param2 = (T2) rs.getObject(item2);
@@ -168,20 +188,24 @@ public class Utilities {
 					System.out.println(e.toString());
 				}
 			}
+			
 		}
 
 		return map;
 	}
 
 	@SuppressWarnings("unchecked")
-	public static <T> T getValue(Connection conn, String query, String item1, T arg1) {
-		Statement stmt = null;
+	public static <T> T getValue(String query, String item1, T arg1) throws IOException, SQLException {
+		
+		Connection conn = Connect.getConnection();
+
+		PreparedStatement stmt = null;
 		ResultSet rs = null;
 		T param1 = null;
 
 		try {
-			stmt = conn.createStatement();
-			rs = stmt.executeQuery(query);
+			stmt = conn.prepareStatement(query);
+			rs = stmt.executeQuery();
 			while (rs.next()) {
 				param1 = (T) rs.getObject(item1);
 			}
@@ -203,6 +227,7 @@ public class Utilities {
 					System.out.println(e.toString());
 				}
 			}
+			
 		}
 
 		return param1;

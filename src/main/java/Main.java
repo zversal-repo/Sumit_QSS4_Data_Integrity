@@ -1,30 +1,29 @@
-import java.sql.Connection;
+
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import Connection_DB.ConnectionDB;
+import Connection_DB.Connect;
 import IntegrityChecks.DataIntegrityChecks;
 
 public class Main {
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException, SQLException {
 
-		HashMap<Long, ArrayList<Long>> map;
-		ConnectionDB connection = new ConnectionDB();
-		Connection conn = connection.getConnection();
+		HashMap<Long,ArrayList<Long>> map;
+		Connect.setDataSource();
 
-		if (conn != null) {
+		if ((map = DataIntegrityChecks.productAgreementCheck()) != null) {
 
-			if ((map = DataIntegrityChecks.productAgreementCheck(conn)) != null) {
-
-				if (map.isEmpty() == true) {
-					System.out.println("No result");
-				}
+			if (map.isEmpty() == true) {
+				System.out.println("No result");
 			}
-
-			connection.closeConnection(conn);
-		} else {
-			System.out.println("Failed");
 		}
+		else {
+			System.out.println("Application failed");
+		}
+		
+
 	}
 }

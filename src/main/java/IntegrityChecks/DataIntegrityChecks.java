@@ -1,6 +1,7 @@
 package IntegrityChecks;
 
-import java.sql.Connection;
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -19,7 +20,7 @@ public class DataIntegrityChecks {
 	 * active Function return null if any Exception occurs during Query Execution
 	 */
 
-	public static ArrayList<Long> Karma_product_check(Connection conn) {
+	public static ArrayList<Long> Karma_product_check() throws IOException, SQLException {
 
 		// ArrayList for Karma users who have all products of{1,2,7,8}
 		ArrayList<Long> user = new ArrayList<>();
@@ -33,14 +34,14 @@ public class DataIntegrityChecks {
 		product.add(8L);
 
 		// Check if SQL query is executed successfully
-		if ((activeUsers = Users.getActiveUsersForData_firm_id(conn, "3")) != null) {
+		if ((activeUsers = Users.getActiveUsersForData_firm_id("3")) != null) {
 
 			for (Long i : activeUsers) {
 				System.out.println("User_id:" + i + "  has active activeProducts");
 				System.out.println("\t");
 
 				// For each active user fetch the list of active activeProducts
-				if ((activeProducts = UserProduct.getActiveProductsForUser_id(conn, String.valueOf(i))) != null) {
+				if ((activeProducts = UserProduct.getActiveProductsForUser_id(String.valueOf(i))) != null) {
 
 					for (Long j : activeProducts) {
 						System.out.print(j + "\t");
@@ -78,34 +79,34 @@ public class DataIntegrityChecks {
 	 * Function to check whether for any non approved product does the product is
 	 * active or not
 	 */
-	public static HashMap<Long, ArrayList<Long>> productAgreementCheck(Connection conn) {
+	public static HashMap<Long, ArrayList<Long>> productAgreementCheck() throws IOException, SQLException {
 
 		HashMap<Long, ArrayList<Long>> map = null;
 
 		// For each user in the database
-		for (Long user : Users.getUsers(conn)) {
+		for (Long user : Users.getUsers()) {
 
 			String user_id = String.valueOf(user);
-			ArrayList<Long> activeProducts = UserProduct.getActiveProductsForUser_id(conn, user_id);
+			ArrayList<Long> activeProducts = UserProduct.getActiveProductsForUser_id(user_id);
 			System.out.println("User " + user_id);
 			// For each product of particular user
-			for (Long product : UserProduct.getProducts(conn, user_id)) {
+			for (Long product : UserProduct.getProducts(user_id)) {
 
 				String product_id = String.valueOf(product);
 				int flag = 1;
 
-				for (Long service : ProductService.getServices(conn, product_id)) {
+				for (Long service : ProductService.getServices(product_id)) {
 					String service_id = String.valueOf(service);
 					ArrayList<Long> agreements;
 
-					if ((agreements = AgreementService.getAgreementsForService_id(conn, service_id)) != null) {
+					if ((agreements = AgreementService.getAgreementsForService_id(service_id)) != null) {
 
 						for (Long agreement : agreements) {
 							String agreement_id = String.valueOf(agreement);
 							Integer status;
 
 							// If agreement is signed but is not approved set flag=0
-							if ((status = AgreementSignDates.getAgreementStatusForUser_id(conn, user_id,
+							if ((status = AgreementSignDates.getAgreementStatusForUser_id(user_id,
 									agreement_id)) != null) {
 								if (status != AgreementStatus.Approved.getStatus())
 									flag = 0;
