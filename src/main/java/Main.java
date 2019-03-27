@@ -12,9 +12,8 @@ public class Main {
 	public static void main(String[] args) throws IOException, SQLException {
 
 		HashMap<Long,ArrayList<Long>> map;
-		Connect.setDataSource();
 
-		if ((map = DataIntegrityChecks.productAgreementCheck()) != null) {
+		if ((map = DataIntegrityChecks.productUserCheck()) != null) {
 
 			if (map.isEmpty() == true) {
 				System.out.println("No result");
@@ -24,6 +23,6 @@ public class Main {
 			System.out.println("Application failed");
 		}
 		
-
+		Connect.closeConnection();
 	}
 }

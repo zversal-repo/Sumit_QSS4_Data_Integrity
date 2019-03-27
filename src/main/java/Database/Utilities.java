@@ -17,15 +17,10 @@ public class Utilities {
 	@SuppressWarnings("unchecked")
 	public static <T> ArrayList<T> getList(String query, String item, T args) throws IOException, SQLException {
 
-		
 		Connection conn = Connect.getConnection();
-
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
 		ArrayList<T> list = new ArrayList<>();
-		try {
-			stmt = conn.prepareStatement(query);
-			rs = stmt.executeQuery();
+
+		try (PreparedStatement stmt = conn.prepareStatement(query); ResultSet rs = stmt.executeQuery()) {
 			while (rs.next()) {
 				list.add((T) rs.getObject(item));
 			}
@@ -33,23 +28,6 @@ public class Utilities {
 		} catch (SQLException e) {
 			System.out.println(e.toString());
 			return null;
-		} finally {
-
-			if (rs != null) {
-				try {
-					rs.close();
-				} catch (SQLException e) {
-					/* ignored */}
-			}
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					System.out.println(e.toString());
-				}
-			}
-
-			
 		}
 
 		return list;
@@ -57,16 +35,13 @@ public class Utilities {
 
 	// Function for One-One Relationship
 	@SuppressWarnings("unchecked")
-	public static <T1, T2> HashMap<T1, T2> getOne_OneMap(String query, String item1, String item2, T1 arg1, T2 arg2) throws IOException, SQLException {
+	public static <T1, T2> HashMap<T1, T2> getOne_OneMap(String query, String item1, String item2, T1 arg1, T2 arg2)
+			throws IOException, SQLException {
 
 		Connection conn = Connect.getConnection();
-
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
 		HashMap<T1, T2> map = new HashMap<>();
-		try {
-			stmt = conn.prepareStatement(query);
-			rs = stmt.executeQuery();
+
+		try (PreparedStatement stmt = conn.prepareStatement(query); ResultSet rs = stmt.executeQuery()) {
 			while (rs.next()) {
 				T1 param1 = (T1) rs.getObject(item1);
 				T2 param2 = (T2) rs.getObject(item2);
@@ -76,21 +51,6 @@ public class Utilities {
 		} catch (SQLException e) {
 			System.out.println(e.toString());
 			return null;
-		} finally {
-			if (rs != null) {
-				try {
-					rs.close();
-				} catch (SQLException e) {
-					/* ignored */}
-			}
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					System.out.println(e.toString());
-				}
-			}
-			
 		}
 
 		return map;
@@ -98,17 +58,14 @@ public class Utilities {
 
 	// Function for One-Many Relationship
 	@SuppressWarnings("unchecked")
-	public static <T1, T2> HashMap<T1, ArrayList<T2>> getMap(String query, String item1, String item2, T1 arg1,
-			T2 arg2) throws IOException, SQLException {
+	public static <T1, T2> HashMap<T1, ArrayList<T2>> getMap(String query, String item1, String item2, T1 arg1, T2 arg2)
+			throws IOException, SQLException {
 
 		Connection conn = Connect.getConnection();
-
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
 		HashMap<T1, ArrayList<T2>> map = new HashMap<>();
-		try {
-			stmt = conn.prepareStatement(query);
-			rs = stmt.executeQuery();
+
+		try (PreparedStatement stmt = conn.prepareStatement(query); ResultSet rs = stmt.executeQuery()) {
+
 			while (rs.next()) {
 				T1 param1 = (T1) rs.getObject(item1);
 				T2 param2 = (T2) rs.getObject(item2);
@@ -125,21 +82,6 @@ public class Utilities {
 		} catch (SQLException e) {
 			System.out.println(e.toString());
 			return null;
-		} finally {
-			if (rs != null) {
-				try {
-					rs.close();
-				} catch (SQLException e) {
-					/* ignored */}
-			}
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					System.out.println(e.toString());
-				}
-			}
-			
 		}
 
 		return map;
@@ -150,13 +92,9 @@ public class Utilities {
 			String item3, T1 arg1, T2 arg2, T3 arg3) throws IOException, SQLException {
 
 		Connection conn = Connect.getConnection();
-
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
 		HashMap<T1, HashMap<T2, T3>> map = new HashMap<>();
-		try {
-			stmt = conn.prepareStatement(query);
-			rs = stmt.executeQuery();
+
+		try (PreparedStatement stmt = conn.prepareStatement(query); ResultSet rs = stmt.executeQuery()) {
 			while (rs.next()) {
 				T1 param1 = (T1) rs.getObject(item1);
 				T2 param2 = (T2) rs.getObject(item2);
@@ -174,21 +112,6 @@ public class Utilities {
 		} catch (SQLException e) {
 			System.out.println(e.toString());
 			return null;
-		} finally {
-			if (rs != null) {
-				try {
-					rs.close();
-				} catch (SQLException e) {
-					/* ignored */}
-			}
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					System.out.println(e.toString());
-				}
-			}
-			
 		}
 
 		return map;
@@ -196,16 +119,11 @@ public class Utilities {
 
 	@SuppressWarnings("unchecked")
 	public static <T> T getValue(String query, String item1, T arg1) throws IOException, SQLException {
-		
-		Connection conn = Connect.getConnection();
 
-		PreparedStatement stmt = null;
-		ResultSet rs = null;
+		Connection conn = Connect.getConnection();
 		T param1 = null;
 
-		try {
-			stmt = conn.prepareStatement(query);
-			rs = stmt.executeQuery();
+		try (PreparedStatement stmt = conn.prepareStatement(query); ResultSet rs = stmt.executeQuery()) {
 			while (rs.next()) {
 				param1 = (T) rs.getObject(item1);
 			}
@@ -213,21 +131,6 @@ public class Utilities {
 		} catch (SQLException e) {
 			System.out.println(e.toString());
 			return null;
-		} finally {
-			if (rs != null) {
-				try {
-					rs.close();
-				} catch (SQLException e) {
-					/* ignored */}
-			}
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					System.out.println(e.toString());
-				}
-			}
-			
 		}
 
 		return param1;

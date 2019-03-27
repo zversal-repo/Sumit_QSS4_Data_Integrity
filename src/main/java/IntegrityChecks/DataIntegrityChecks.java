@@ -11,6 +11,7 @@ import Database.ProductService;
 import Database.UserProduct;
 import Database.Users;
 import TablesStatusCode.AgreementStatus;
+import TablesStatusCode.UserStatus;
 
 public class DataIntegrityChecks {
 
@@ -33,14 +34,14 @@ public class DataIntegrityChecks {
 		product.add(7L);
 		product.add(8L);
 
-		// Check if SQL query is executed successfully
+		/* Check if SQL query is executed successfully */
 		if ((activeUsers = Users.getActiveUsersForData_firm_id("3")) != null) {
 
 			for (Long i : activeUsers) {
 				System.out.println("User_id:" + i + "  has active activeProducts");
 				System.out.println("\t");
 
-				// For each active user fetch the list of active activeProducts
+				/* For each active user fetch the list of active activeProducts */
 				if ((activeProducts = UserProduct.getActiveProductsForUser_id(String.valueOf(i))) != null) {
 
 					for (Long j : activeProducts) {
@@ -58,7 +59,9 @@ public class DataIntegrityChecks {
 				}
 			}
 
-			// Removing all the users from active users which have {1,2,7,8} products active
+			/*
+			 * Removing all the users from active users which have {1,2,7,8} products active
+			 */
 
 			activeUsers.removeAll(user);
 
@@ -74,6 +77,7 @@ public class DataIntegrityChecks {
 			return null;
 		}
 	}
+	
 
 	/*
 	 * Function to check whether for any non approved product does the product is
@@ -83,13 +87,14 @@ public class DataIntegrityChecks {
 
 		HashMap<Long, ArrayList<Long>> map = null;
 
-		// For each user in the database
+		/* For each user in the database */
 		for (Long user : Users.getUsers()) {
 
 			String user_id = String.valueOf(user);
 			ArrayList<Long> activeProducts = UserProduct.getActiveProductsForUser_id(user_id);
 			System.out.println("User " + user_id);
-			// For each product of particular user
+			
+			/* For each product of particular user */
 			for (Long product : UserProduct.getProducts(user_id)) {
 
 				String product_id = String.valueOf(product);
@@ -117,8 +122,10 @@ public class DataIntegrityChecks {
 					}
 				}
 
-				// If every service is not approved but active products list for user contains
-				// that product add to the map
+				/*
+				 * If every service is not approved but active products list for user contains
+				 * that product add to the map
+				 */
 				if (flag == 0 && activeProducts.contains(product)) {
 
 					if (map == null) {
@@ -138,6 +145,46 @@ public class DataIntegrityChecks {
 			}
 		}
 
+		return map;
+	}
+	
+	/*
+	 * Return a map containing all users that are not active with corresponding
+	 * active products
+	 */
+
+	public static HashMap<Long, ArrayList<Long>> productUserCheck() throws IOException, SQLException {
+
+		HashMap<Long, ArrayList<Long>> map = null;
+		ArrayList<Long> activeUsers = Users.getUsers(String.valueOf(UserStatus.Active.getStatus()));
+
+		/* For each user in the database */
+
+		for (Long user : Users.getUsers()) {
+
+			String user_id = String.valueOf(user);
+			ArrayList<Long> activeProducts = UserProduct.getActiveProductsForUser_id(user_id);
+			//System.out.println("User " + user_id);
+
+			/* if the user is not active and still has active products */
+
+			if (!activeUsers.contains(user) && !activeProducts.isEmpty()) {
+				if (map == null) {
+					map = new HashMap<>();
+				}
+
+				map.put(user, activeProducts);
+
+				System.out.println("User " + user_id + "is not active but has following product active:");
+				for (Long product : activeProducts) {
+					System.out.print(product + "  ");
+				}
+				System.out.println();
+				System.out.println();
+
+			}
+
+		}
 		return map;
 	}
 }
