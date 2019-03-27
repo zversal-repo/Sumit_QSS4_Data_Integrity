@@ -21,7 +21,7 @@ public class DataIntegrityChecks {
 	 * active Function return null if any Exception occurs during Query Execution
 	 */
 
-	public static ArrayList<Long> Karma_product_check() throws IOException, SQLException {
+	public static ArrayList<Long> checkForKarmaUsers() throws IOException, SQLException {
 
 		// ArrayList for Karma users who have all products of{1,2,7,8}
 		ArrayList<Long> user = new ArrayList<>();
@@ -83,10 +83,12 @@ public class DataIntegrityChecks {
 	 * Function to check whether for any non approved product does the product is
 	 * active or not
 	 */
-	public static HashMap<Long, ArrayList<Long>> productAgreementCheck() throws IOException, SQLException {
+	public static HashMap<Long, HashMap<Long,String>> checkUnapprovedAgreementsHavingActiveProducts() throws IOException, SQLException {
 
-		HashMap<Long, ArrayList<Long>> map = null;
-
+		HashMap<Long, HashMap<Long,String>> map = null;
+		HashMap<Long,ArrayList<Long>> services = ProductService.getServices();
+		HashMap<Long,ArrayList<Long>> agreements = AgreementService.getAgreements();
+		
 		/* For each user in the database */
 		for (Long user : Users.getUsers()) {
 
@@ -97,26 +99,28 @@ public class DataIntegrityChecks {
 			/* For each product of particular user */
 			for (Long product : UserProduct.getProducts(user_id)) {
 
-				String product_id = String.valueOf(product);
 				int flag = 1;
+				String string="";
 
-				for (Long service : ProductService.getServices(product_id)) {
-					String service_id = String.valueOf(service);
-					ArrayList<Long> agreements;
+				for (Long service : services.get(product) ) {
+					ArrayList<Long> agreementlist;
 
-					if ((agreements = AgreementService.getAgreementsForService_id(service_id)) != null) {
+					if ((agreementlist = agreements.get(service)) != null) {
 
-						for (Long agreement : agreements) {
+						for (Long agreement : agreementlist) {
 							String agreement_id = String.valueOf(agreement);
 							Integer status;
 
 							// If agreement is signed but is not approved set flag=0
-							if ((status = AgreementSignDates.getAgreementStatusForUser_id(user_id,
+							if ((status = AgreementSignDates.getAgreementStatus(user_id,
 									agreement_id)) != null) {
-								if (status != AgreementStatus.Approved.getStatus())
+								if (status != AgreementStatus.Approved.getStatus()) {
 									flag = 0;
+									string=string+"Service_id: "+service+" Agreement_Id: "+agreement_id+" is not approved\n";
+								}
 							} else {// If agreement is not yet signed
 								flag = 0;
+								string =string +"Service_id: "+service+" Agreement_Id: "+agreement_id+" is not signed yet\n";
 							}
 						}
 					}
@@ -133,14 +137,15 @@ public class DataIntegrityChecks {
 					}
 
 					if (map.containsKey(user)) {
-						map.get(user).add(product);
+						map.get(user).put(product,string);
+						
 					} else {
-						ArrayList<Long> list = new ArrayList<>();
-						list.add(product);
-						map.put(user, list);
+						HashMap<Long,String> temp = new HashMap<>();
+						temp.put(product,string);
+						map.put(user, temp);
 					}
-					System.out.println("Product_id  " + product_id + " is not approved but active");
-
+					System.out.println("Product_id  " + product + " is not approved but active because");
+					System.out.println(string);
 				}
 			}
 		}
@@ -153,7 +158,7 @@ public class DataIntegrityChecks {
 	 * active products
 	 */
 
-	public static HashMap<Long, ArrayList<Long>> productUserCheck() throws IOException, SQLException {
+	public static HashMap<Long, ArrayList<Long>> checkInactiveUsersHavingActiveProducts() throws IOException, SQLException {
 
 		HashMap<Long, ArrayList<Long>> map = null;
 		ArrayList<Long> activeUsers = Users.getUsers(String.valueOf(UserStatus.Active.getStatus()));
@@ -175,7 +180,7 @@ public class DataIntegrityChecks {
 
 				map.put(user, activeProducts);
 
-				System.out.println("User " + user_id + "is not active but has following product active:");
+				System.out.println("User " + user_id + " is not active but has following product active:");
 				for (Long product : activeProducts) {
 					System.out.print(product + "  ");
 				}

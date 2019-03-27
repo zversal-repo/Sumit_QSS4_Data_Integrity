@@ -11,9 +11,9 @@ public class Main {
 
 	public static void main(String[] args) throws IOException, SQLException {
 
-		HashMap<Long,ArrayList<Long>> map;
+		HashMap<Long,HashMap<Long,String>> map;
 
-		if ((map = DataIntegrityChecks.productUserCheck()) != null) {
+		if ((map = DataIntegrityChecks.checkUnapprovedAgreementsHavingActiveProducts()) != null) {
 
 			if (map.isEmpty() == true) {
 				System.out.println("No result");

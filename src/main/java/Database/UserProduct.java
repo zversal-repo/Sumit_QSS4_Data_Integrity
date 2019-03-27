@@ -11,7 +11,7 @@ import TablesStatusCode.UserProductStatus;
 public class UserProduct {
 
 	// Function for getting all products for a particular user
-	public static ArrayList<Long> getProducts(  String user_id) throws IOException, SQLException {
+	public static ArrayList<Long> getProducts(String user_id) throws IOException, SQLException {
 
 		String query = "SELECT DISTINCT product_id FROM user_product WHERE user_id =" + user_id
 				+ " ORDER BY product_id";
@@ -20,7 +20,7 @@ public class UserProduct {
 	}
 
 	// Function for getting all products for every user
-	public static HashMap<Long, ArrayList<Long>> getUsersAndProducts() throws IOException, SQLException {
+	public static HashMap<Long, ArrayList<Long>> getProducts() throws IOException, SQLException {
 
 		String query = "SELECT DISTINCT user_id,product_id FROM user_product";
 		return Utilities.getMap( query, "user_id", "product_id", 1L, 1L);
