@@ -1,28 +1,29 @@
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
 
 import Connection_DB.Connect;
 import IntegrityChecks.DataIntegrityChecks;
 
 public class Main {
 
-	public static void main(String[] args) throws IOException, SQLException {
+	public static void main(String[] args) {
 
-		HashMap<Long,HashMap<Long,String>> map;
+		try {
+			
+			DataIntegrityChecks.checkUnapprovedAgreementsHavingActiveProducts();
 
-		if ((map = DataIntegrityChecks.checkUnapprovedAgreementsHavingActiveProducts()) != null) {
-
-			if (map.isEmpty() == true) {
-				System.out.println("No result");
+		} catch(SQLException | IOException e){
+			System.out.println("Cannot complete method invocation due to I/O or SQL Issues.Details are below");
+			e.printStackTrace();
+		}finally {
+			try {
+				Connect.closeConnection();
+			}
+			catch(SQLException e) {
+				/* do nothing */
 			}
 		}
-		else {
-			System.out.println("Application failed");
-		}
-		
-		Connect.closeConnection();
+
 	}
 }

@@ -24,4 +24,17 @@ public class AgreementService {
 
 	}
 
+	public static HashMap<Long, HashMap<Long, HashMap<Long, ArrayList<Long>>>> getAllAgreements()
+			throws IOException, SQLException {
+		String query = "SELECT user_id,c.product_id,c.service_id,agreement_id FROM \r\n"
+				+ "        (SELECT user_id,a.product_id,service_id FROM \r\n"
+				+ "		(SELECT DISTINCT user_id,product_id FROM user_product )a \r\n" + "	    INNER JOIN\r\n"
+				+ "	        (SELECT DISTINCT product_id,service_id FROM product_service ) b \r\n"
+				+ "	ON a.product_id =b.product_id)c \r\n" + "	 \r\n" + "    INNER JOIN \r\n"
+				+ "	(SELECT DISTINCT service_id,agreement_id FROM agreement_service)d \r\n"
+				+ "    ON c.service_id=d.service_id";
+		
+		return Utilities.getMap(query, "user_id", "product_id", "service_id", "agreement_id", 1L, 1L, 1L, 1L);
+
+	}
 }

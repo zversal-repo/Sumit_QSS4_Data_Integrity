@@ -3,193 +3,212 @@ package IntegrityChecks;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 import Database.AgreementService;
 import Database.AgreementSignDates;
-import Database.ProductService;
 import Database.UserProduct;
 import Database.Users;
+import Entity.Agreement;
+import Entity.Product;
+import Entity.Service;
+import Entity.User;
+import Entity.UserAndProduct;
 import TablesStatusCode.AgreementStatus;
 import TablesStatusCode.UserStatus;
 
 public class DataIntegrityChecks {
 
 	/*
-	 * Function return list of data_firm_id=3 users which are active and but does
-	 * not contain all mandatory activeProducts{1,2,7,8} or some of them are not
-	 * active Function return null if any Exception occurs during Query Execution
+	 * Function return map of data_firm_id=3 active users as key and list of
+	 * products as value which they don't have out of {1,2,7,8}
 	 */
 
-	public static ArrayList<Long> checkForKarmaUsers() throws IOException, SQLException {
+	public static HashMap<Long, ArrayList<Long>> checkForKarmaUsers() throws IOException, SQLException {
 
-		// ArrayList for Karma users who have all products of{1,2,7,8}
-		ArrayList<Long> user = new ArrayList<>();
-		ArrayList<Long> activeUsers;
-		ArrayList<Long> product = new ArrayList<>(); // ArrayList for product {1,2,7,8}
+		ArrayList<Long> mandatoryProducts = new ArrayList<>(
+				Arrays.asList(1L, 2L, 7L, 8L)); /* ArrayList for product {1,2,7,8} */
+
+		HashMap<Long, ArrayList<Long>> map = new HashMap<>();
 		ArrayList<Long> activeProducts;
 
-		product.add(1L);
-		product.add(2L);
-		product.add(7L);
-		product.add(8L);
+		ArrayList<Long> activeUsers = Users.getActiveUsersForData_firm_id("3");
 
-		/* Check if SQL query is executed successfully */
-		if ((activeUsers = Users.getActiveUsersForData_firm_id("3")) != null) {
+		for (Long user : activeUsers) {
 
-			for (Long i : activeUsers) {
-				System.out.println("User_id:" + i + "  has active activeProducts");
-				System.out.println("\t");
+			/* For each active user fetch the list of active activeProducts */
+			activeProducts = UserProduct.getActiveProductsForUser_id(String.valueOf(user));
 
-				/* For each active user fetch the list of active activeProducts */
-				if ((activeProducts = UserProduct.getActiveProductsForUser_id(String.valueOf(i))) != null) {
+			/* Check if the activeProducts list contains mandatory activeProducts */
 
-					for (Long j : activeProducts) {
-						System.out.print(j + "\t");
-					}
+			if (!activeProducts.containsAll(mandatoryProducts)) {
+				ArrayList<Long> temp = new ArrayList<>(mandatoryProducts);
+				temp.remove(activeProducts);
 
-					// Check if the activeProducts list contains mandatory activeProducts
-					if (activeProducts.containsAll(product)) { // Check whether the user have all mandatory
-																// activeProducts
-						user.add(i);
+				map.put(user, temp);
 
-					}
-					System.out.println();
-
-				}
 			}
 
-			/*
-			 * Removing all the users from active users which have {1,2,7,8} products active
-			 */
-
-			activeUsers.removeAll(user);
-
-			System.out.println(
-					"\n\n" + "Following active users of data_firm_id = 3 doesn't have product_id ={1,2,7,8}\n");
-			for (Long i : activeUsers) {
-				System.out.println(i);
-			}
-
-			return activeUsers;
-
-		} else {
-			return null;
 		}
+
+		/* Printing the output */
+		if (map.isEmpty()) {
+			System.out.println("No result");
+		} else {
+			System.out.println("OutPut:");
+			for (Long user : map.keySet()) {
+				System.out.println("User _id :" + user + " does not have following products");
+				for (Long product : map.get(user)) {
+					System.out.print(product + "  ");
+				}
+				System.out.println("\n");
+			}
+			System.out.println();
+		}
+
+		return map;
+
 	}
-	
 
 	/*
 	 * Function to check whether for any non approved product does the product is
 	 * active or not
 	 */
-	public static HashMap<Long, HashMap<Long,String>> checkUnapprovedAgreementsHavingActiveProducts() throws IOException, SQLException {
+	public static ArrayList<UserAndProduct> checkUnapprovedAgreementsHavingActiveProducts()
+			throws IOException, SQLException {
 
-		HashMap<Long, HashMap<Long,String>> map = null;
-		HashMap<Long,ArrayList<Long>> services = ProductService.getServices();
-		HashMap<Long,ArrayList<Long>> agreements = AgreementService.getAgreements();
-		
-		/* For each user in the database */
-		for (Long user : Users.getUsers()) {
+		/* List to be returned */
+
+		ArrayList<UserAndProduct> list = new ArrayList<>();
+
+		/* User Status for all users */
+		HashMap<Long, Integer> userStatus = Users.getUserStatus();
+
+		/* Product Current Status for all products of every user */
+		HashMap<Long, HashMap<Long, Integer>> productCurrentStatus = UserProduct.getProductCurrentStatus();
+
+		/* Map For Relationship b/w user,product,service and agreements */
+		HashMap<Long, HashMap<Long, HashMap<Long, ArrayList<Long>>>> agreements = AgreementService.getAllAgreements();
+
+		for (Long user : agreements.keySet()) {
 
 			String user_id = String.valueOf(user);
+
+			ArrayList<Product> products = new ArrayList<>();
+
 			ArrayList<Long> activeProducts = UserProduct.getActiveProductsForUser_id(user_id);
-			System.out.println("User " + user_id);
-			
+
 			/* For each product of particular user */
-			for (Long product : UserProduct.getProducts(user_id)) {
+			for (Long product : agreements.get(user).keySet()) {
+				
+				String string = "";
+				
+				ArrayList<Service> services = new ArrayList<>();
+				
+				for (Long service : agreements.get(user).get(product).keySet()) {
 
-				int flag = 1;
-				String string="";
+					ArrayList<Long> agreementlist = agreements.get(user).get(product).get(service);
+										
+					ArrayList<Agreement> agreementStatus = new ArrayList<>();
 
-				for (Long service : services.get(product) ) {
-					ArrayList<Long> agreementlist;
+					for (Long agreement : agreementlist) {
+						String agreement_id = String.valueOf(agreement);
+						Integer status;
 
-					if ((agreementlist = agreements.get(service)) != null) {
+						
+						if ((status = AgreementSignDates.getAgreementStatus(user_id, agreement_id)) != null) {
+							if (status != AgreementStatus.Approved.getStatus()) {
+															
+								agreementStatus.add(new Agreement(agreement,"Not approved"));
+								
 
-						for (Long agreement : agreementlist) {
-							String agreement_id = String.valueOf(agreement);
-							Integer status;
-
-							// If agreement is signed but is not approved set flag=0
-							if ((status = AgreementSignDates.getAgreementStatus(user_id,
-									agreement_id)) != null) {
-								if (status != AgreementStatus.Approved.getStatus()) {
-									flag = 0;
-									string=string+"Service_id: "+service+" Agreement_Id: "+agreement_id+" is not approved\n";
-								}
-							} else {// If agreement is not yet signed
-								flag = 0;
-								string =string +"Service_id: "+service+" Agreement_Id: "+agreement_id+" is not signed yet\n";
 							}
+						} else {
+											
+							agreementStatus.add(new Agreement(agreement,"Not signed"));
 						}
 					}
+
+					if(!agreementStatus.isEmpty()) 
+						services.add(new Service(service,agreementStatus));
+
 				}
 
-				/*
-				 * If every service is not approved but active products list for user contains
-				 * that product add to the map
-				 */
-				if (flag == 0 && activeProducts.contains(product)) {
+				if ((!services.isEmpty()) && activeProducts.contains(product)) {
 
-					if (map == null) {
-						map = new HashMap<>();
-					}
+					Integer status = productCurrentStatus.get(user).get(product);
 
-					if (map.containsKey(user)) {
-						map.get(user).put(product,string);
-						
-					} else {
-						HashMap<Long,String> temp = new HashMap<>();
-						temp.put(product,string);
-						map.put(user, temp);
-					}
-					System.out.println("Product_id  " + product + " is not approved but active because");
-					System.out.println(string);
+					products.add(new Product(product, status, services));
+
 				}
+				
+			}
+			if(!products.isEmpty()) {
+				list.add(new UserAndProduct(user, userStatus.get(user), products));
 			}
 		}
-
-		return map;
+		
+		/*Printing output*/
+		for(UserAndProduct i:list) {
+			System.out.println("User_id: "+i.getUserId()+" with status " +i.getStatus());
+			for(Product j:i.getProducts()) {
+				System.out.println("\t"+"Product_id: "+j.getProductId()+" with status "+j.getStatus());
+				for(Service k:j.getServices()) {
+					System.out.println("\t\t"+"Service_id: "+k.getServiceId()+" has ");
+					for(Agreement l:k.getAgreements()) {
+						System.out.println("\t\t\t"+"Agreement_id: "+l.getAgreemenyId()+" "+l.getStatus());
+					}
+				}
+				System.out.println();
+			}
+			System.out.println();
+		}
+		
+		return list;
 	}
-	
+
 	/*
-	 * Return a map containing all users that are not active with corresponding
-	 * active products
+	 * Return a list of inactive users object with their status and list of products
+	 * which are active
 	 */
+	public static ArrayList<User> checkInactiveUsersHavingActiveProducts() throws IOException, SQLException {
 
-	public static HashMap<Long, ArrayList<Long>> checkInactiveUsersHavingActiveProducts() throws IOException, SQLException {
-
-		HashMap<Long, ArrayList<Long>> map = null;
-		ArrayList<Long> activeUsers = Users.getUsers(String.valueOf(UserStatus.Active.getStatus()));
+		ArrayList<User> list = new ArrayList<>();
+		HashMap<Long, Integer> users = Users.getUserStatus();
 
 		/* For each user in the database */
 
-		for (Long user : Users.getUsers()) {
+		for (Long user : users.keySet()) {
 
-			String user_id = String.valueOf(user);
-			ArrayList<Long> activeProducts = UserProduct.getActiveProductsForUser_id(user_id);
-			//System.out.println("User " + user_id);
+			Integer status = users.get(user);
 
-			/* if the user is not active and still has active products */
+			if (status != UserStatus.Active.getStatus()) {
 
-			if (!activeUsers.contains(user) && !activeProducts.isEmpty()) {
-				if (map == null) {
-					map = new HashMap<>();
+				String user_id = String.valueOf(user);
+				ArrayList<Long> activeProducts = UserProduct.getActiveProductsForUser_id(user_id);
+
+				if (!activeProducts.isEmpty()) {
+
+					User tempUser = new User(user, status, activeProducts);
+					list.add(tempUser);
 				}
-
-				map.put(user, activeProducts);
-
-				System.out.println("User " + user_id + " is not active but has following product active:");
-				for (Long product : activeProducts) {
-					System.out.print(product + "  ");
-				}
-				System.out.println();
-				System.out.println();
-
 			}
-
 		}
-		return map;
+
+		/* Printing the output */
+
+		if (list.isEmpty()) {
+			System.out.println("No result");
+		} else {
+			System.out.println("OutPut:");
+			for (User user : list) {
+				System.out.println(user.toString());
+				System.out.println("\n");
+			}
+			System.out.println();
+		}
+
+		return list;
 	}
 }

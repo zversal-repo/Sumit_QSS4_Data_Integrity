@@ -25,7 +25,7 @@ public class AgreementSignDates {
 	public static Integer getAgreementStatus(String user_id, String agreement_id) throws IOException, SQLException {
 		String query = "SELECT status FROM agreementsigndates WHERE user_id =" + user_id + " AND agreement_id="
 				+ agreement_id;
-		return Utilities.getValue(query, "status", (Integer) 1);
+		return Utilities.getValue(query, "status", (Integer)1);
 
 	}
 
