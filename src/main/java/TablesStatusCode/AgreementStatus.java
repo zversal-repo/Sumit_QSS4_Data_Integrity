@@ -7,7 +7,7 @@ public enum AgreementStatus {
 	
 	private final int statusCode;
 	
-	AgreementStatus(int status){
+	private AgreementStatus(int status){
 		this.statusCode=status;
 	}
 	

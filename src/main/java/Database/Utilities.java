@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.PreparedStatement;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -15,7 +15,7 @@ import Connection_DB.Connect;
 public class Utilities {
 
 	private static Connection conn;
-	private static PreparedStatement stmt;
+	private static Statement stmt;
 	private static ResultSet rs;
 
 	@SuppressWarnings("unchecked")
@@ -25,8 +25,8 @@ public class Utilities {
 
 		try {
 			conn = Connect.getConnection();
-			stmt = conn.prepareStatement(query);
-			rs = stmt.executeQuery();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(query);
 
 			while (rs.next()) {
 				list.add((T) rs.getObject(item));
@@ -62,8 +62,8 @@ public class Utilities {
 
 		try {
 			conn = Connect.getConnection();
-			stmt = conn.prepareStatement(query);
-			rs = stmt.executeQuery();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(query);
 			while (rs.next()) {
 				T1 param1 = (T1) rs.getObject(item1);
 				T2 param2 = (T2) rs.getObject(item2);
@@ -101,8 +101,8 @@ public class Utilities {
 
 		try {
 			conn = Connect.getConnection();
-			stmt = conn.prepareStatement(query);
-			rs = stmt.executeQuery();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(query);
 
 			while (rs.next()) {
 				T1 param1 = (T1) rs.getObject(item1);
@@ -146,8 +146,8 @@ public class Utilities {
 
 		try {
 			conn = Connect.getConnection();
-			stmt = conn.prepareStatement(query);
-			rs = stmt.executeQuery();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(query);
 
 			while (rs.next()) {
 				T1 param1 = (T1) rs.getObject(item1);
@@ -162,6 +162,7 @@ public class Utilities {
 					map.put(param1, list);
 				}
 			}
+			
 
 		} finally {
 			if (rs != null) {
@@ -193,8 +194,8 @@ public class Utilities {
 
 		try {
 			conn = Connect.getConnection();
-			stmt = conn.prepareStatement(query);
-			rs = stmt.executeQuery();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(query);
 
 			while (rs.next()) {
 				T1 param1 = (T1) rs.getObject(item1);
@@ -261,8 +262,8 @@ public class Utilities {
 
 		try {
 			conn = Connect.getConnection();
-			stmt = conn.prepareStatement(query);
-			rs = stmt.executeQuery();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(query);
 
 			while (rs.next()) {
 				param1 = (T) rs.getObject(item1);

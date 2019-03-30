@@ -11,7 +11,7 @@ public class Main {
 
 		try {
 			
-			DataIntegrityChecks.checkUnapprovedAgreementsHavingActiveProducts();
+			DataIntegrityChecks.checkAgreementStatusAndApprovalsSync();
 
 		} catch(SQLException | IOException e){
 			System.out.println("Cannot complete method invocation due to I/O or SQL Issues.Details are below");

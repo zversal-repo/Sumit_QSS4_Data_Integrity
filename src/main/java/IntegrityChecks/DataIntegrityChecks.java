@@ -8,6 +8,7 @@ import java.util.HashMap;
 
 import Database.AgreementService;
 import Database.AgreementSignDates;
+import Database.Approvals;
 import Database.UserProduct;
 import Database.Users;
 import Entity.Agreement;
@@ -16,6 +17,7 @@ import Entity.Service;
 import Entity.User;
 import Entity.UserAndProduct;
 import TablesStatusCode.AgreementStatus;
+import TablesStatusCode.ApprovalStatus;
 import TablesStatusCode.UserStatus;
 
 public class DataIntegrityChecks {
@@ -25,12 +27,14 @@ public class DataIntegrityChecks {
 	 * products as value which they don't have out of {1,2,7,8}
 	 */
 
-	public static HashMap<Long, ArrayList<Long>> checkForKarmaUsers() throws IOException, SQLException {
+	public static ArrayList<User> checkForKarmaUsers() throws IOException, SQLException {
 
 		ArrayList<Long> mandatoryProducts = new ArrayList<>(
 				Arrays.asList(1L, 2L, 7L, 8L)); /* ArrayList for product {1,2,7,8} */
 
-		HashMap<Long, ArrayList<Long>> map = new HashMap<>();
+		// List of active users object with list of mandatory products they dont have
+		ArrayList<User> list = new ArrayList<>();
+
 		ArrayList<Long> activeProducts;
 
 		ArrayList<Long> activeUsers = Users.getActiveUsersForData_firm_id("3");
@@ -44,30 +48,31 @@ public class DataIntegrityChecks {
 
 			if (!activeProducts.containsAll(mandatoryProducts)) {
 				ArrayList<Long> temp = new ArrayList<>(mandatoryProducts);
-				temp.remove(activeProducts);
+				temp.removeAll(activeProducts);
 
-				map.put(user, temp);
+				list.add(new User(user, UserStatus.Active.getStatus(), temp));
 
 			}
 
 		}
 
 		/* Printing the output */
-		if (map.isEmpty()) {
-			System.out.println("No result");
-		} else {
+		if (!list.isEmpty()) {
+
 			System.out.println("OutPut:");
-			for (Long user : map.keySet()) {
-				System.out.println("User _id :" + user + " does not have following products");
-				for (Long product : map.get(user)) {
+			for (User user : list) {
+				System.out.println("User _id :" + user.getUserId() + " does not have following products");
+				for (Long product : user.getProducts()) {
 					System.out.print(product + "  ");
 				}
 				System.out.println("\n");
 			}
 			System.out.println();
+		} else {
+			System.out.println("No Default case");
 		}
 
-		return map;
+		return list;
 
 	}
 
@@ -101,37 +106,33 @@ public class DataIntegrityChecks {
 
 			/* For each product of particular user */
 			for (Long product : agreements.get(user).keySet()) {
-				
-				String string = "";
-				
+
 				ArrayList<Service> services = new ArrayList<>();
-				
+
 				for (Long service : agreements.get(user).get(product).keySet()) {
 
 					ArrayList<Long> agreementlist = agreements.get(user).get(product).get(service);
-										
+
 					ArrayList<Agreement> agreementStatus = new ArrayList<>();
 
 					for (Long agreement : agreementlist) {
 						String agreement_id = String.valueOf(agreement);
 						Integer status;
 
-						
 						if ((status = AgreementSignDates.getAgreementStatus(user_id, agreement_id)) != null) {
 							if (status != AgreementStatus.Approved.getStatus()) {
-															
-								agreementStatus.add(new Agreement(agreement,"Not approved"));
-								
+
+								agreementStatus.add(new Agreement(agreement, "Not approved"));
 
 							}
 						} else {
-											
-							agreementStatus.add(new Agreement(agreement,"Not signed"));
+
+							agreementStatus.add(new Agreement(agreement, "Not signed"));
 						}
 					}
 
-					if(!agreementStatus.isEmpty()) 
-						services.add(new Service(service,agreementStatus));
+					if (!agreementStatus.isEmpty())
+						services.add(new Service(service, agreementStatus));
 
 				}
 
@@ -142,29 +143,36 @@ public class DataIntegrityChecks {
 					products.add(new Product(product, status, services));
 
 				}
-				
+
 			}
-			if(!products.isEmpty()) {
+			if (!products.isEmpty()) {
 				list.add(new UserAndProduct(user, userStatus.get(user), products));
 			}
 		}
-		
-		/*Printing output*/
-		for(UserAndProduct i:list) {
-			System.out.println("User_id: "+i.getUserId()+" with status " +i.getStatus());
-			for(Product j:i.getProducts()) {
-				System.out.println("\t"+"Product_id: "+j.getProductId()+" with status "+j.getStatus());
-				for(Service k:j.getServices()) {
-					System.out.println("\t\t"+"Service_id: "+k.getServiceId()+" has ");
-					for(Agreement l:k.getAgreements()) {
-						System.out.println("\t\t\t"+"Agreement_id: "+l.getAgreemenyId()+" "+l.getStatus());
+
+		/* Printing output */
+		if (!list.isEmpty()) {
+			for (UserAndProduct i : list) {
+				System.out.println("User_id:\"" + i.getUserId() + "\": with status " + i.getStatus() + "{");
+				for (Product j : i.getProducts()) {
+					System.out.println(
+							"\t" + "Product_id:\" " + j.getProductId() + "\":with status " + j.getStatus() + "{");
+					for (Service k : j.getServices()) {
+						System.out.println("\t\t" + "Service_id:\"" + k.getServiceId() + "\":{");
+						for (Agreement l : k.getAgreements()) {
+							System.out
+									.println("\t\t\t" + "Agreement_id:\"" + l.getAgreemenyId() + "\":" + l.getStatus());
+						}
+						System.out.println("\t\t},");
 					}
+					System.out.println("\t},");
 				}
-				System.out.println();
+				System.out.println("},");
 			}
-			System.out.println();
+		} else {
+			System.out.println("No Default case");
 		}
-		
+
 		return list;
 	}
 
@@ -198,17 +206,99 @@ public class DataIntegrityChecks {
 
 		/* Printing the output */
 
-		if (list.isEmpty()) {
-			System.out.println("No result");
-		} else {
+		if (!list.isEmpty()) {
+
 			System.out.println("OutPut:");
 			for (User user : list) {
 				System.out.println(user.toString());
 				System.out.println("\n");
 			}
 			System.out.println();
+		} else {
+			System.out.println("No Default case");
 		}
 
 		return list;
 	}
+
+	public static HashMap<Long, HashMap<Long, String>> checkAgreementStatusAndApprovalsSync()
+			throws IOException, SQLException {
+
+		HashMap<Long, HashMap<Long, Integer>> agreements = AgreementSignDates.getAgreementStatus();
+
+		HashMap<Long, HashMap<Long, Boolean>> approvals = Approvals.getApprovalStatus();
+
+		HashMap<Long, HashMap<Long, String>> map = new HashMap<>();
+
+		for (Long user : approvals.keySet()) {
+
+			HashMap<Long, String> message = new HashMap<>();
+
+			for (Long agreementId : approvals.get(user).keySet()) {
+
+				String string = null;
+
+				Boolean approval = approvals.get(user).get(agreementId);
+
+				try {
+
+					int agreement = agreements.get(user).get(agreementId);
+
+					if (approval == ApprovalStatus.WAIT_FOR_AGREEMENT.getStatus()) {
+						string = "Wait_for_Agreement state in Approvals table\n";
+						if (agreement == AgreementStatus.Accepted.getStatus()) {
+							string = string + "Accepted state in AgreementSignDates Table";
+						}
+
+						else if (agreement == AgreementStatus.Approved.getStatus()) {
+							string = string + "Approved state in AgreementSignDates Table";
+						}
+
+						else {
+							string = string + "Disapproved state in AgreementSignDates Table";
+						}
+					} else {
+
+						if (agreement == AgreementStatus.Approved.getStatus()) {
+							string = "Wait_for_Approval state in Approvals table\n";
+							string = string + "Approved state in AgreementSignDates Table";
+						}
+
+						else if (agreement == AgreementStatus.Disapproved.getStatus()) {
+							string = "Wait_for_Approval state in Approvals table\n";
+							string = string + "Disapproved state in AgreementSignDates Table";
+						}
+
+					}
+					if (string != null) {
+						message.put(agreementId, string);
+					}
+
+				} catch (NullPointerException e) {
+					/* do nothing */
+				}
+
+			}
+			if (!message.isEmpty()) {
+				map.put(user, message);
+			}
+
+		}
+
+		if (!map.isEmpty()) {
+			for (Long user : map.keySet()) {
+				System.out.println("\"" + user + "\":{");
+				for (Long agreement : map.get(user).keySet()) {
+					System.out.println("\t\"" + agreement + "\":\"" + map.get(user).get(agreement) + "\",");
+				}
+				System.out.println("},");
+			}
+			System.out.println();
+		} else {
+			System.out.println("No Default case");
+		}
+
+		return map;
+	}
+
 }
