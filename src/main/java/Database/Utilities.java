@@ -7,6 +7,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 import Connection_DB.Connect;
 
@@ -253,6 +254,50 @@ public class Utilities {
 
 		return map;
 
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T1,T2> HashMap<T1,HashSet<T2>> getMapwithSet(String query, String item1,String item2,T1 arg1,T2 arg2) throws IOException, SQLException {
+
+		HashMap<T1, HashSet<T2>> map = new HashMap<>();
+
+		try {
+			conn = Connect.getConnection();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(query);
+
+			while (rs.next()) {
+				T1 param1 = (T1) rs.getObject(item1);
+				T2 param2 = (T2) rs.getObject(item2);
+				
+				if (map.containsKey(param1)) {
+					map.get(param1).add(param2);
+				} else {
+					HashSet<T2> temp = new HashSet<>();
+					temp.add(param2);
+					map.put(param1,temp);
+				}
+			}
+
+		} finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException e) {
+					/* do nothing */
+				}
+
+			}
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					/* do nothing */
+				}
+			}
+		}
+
+		return map;
 	}
 
 	@SuppressWarnings("unchecked")

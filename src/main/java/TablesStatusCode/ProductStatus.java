@@ -1,11 +1,11 @@
 package TablesStatusCode;
 
-public enum UserProductStatus {
+public enum ProductStatus {
 	Wait(4), Access(3), Cancelled(6);
 
 	private final int statusCode;
 
-	UserProductStatus(int statusCode) {
+	ProductStatus(int statusCode) {
 		this.statusCode = statusCode;
 	}
 

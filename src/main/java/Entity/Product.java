@@ -2,16 +2,16 @@ package Entity;
 
 import java.util.ArrayList;
 
-public class Product {
+public class Product<T> {
 
 	private Long productId;
 	private Integer status;
-	private ArrayList<Service> services;
+	private ArrayList<T> list;
 	
-	public Product(Long productId, Integer status, ArrayList<Service> services) {
+	public Product(Long productId, Integer status, ArrayList<T> list) {
 		this.productId = productId;
 		this.status = status;
-		this.services = services;
+		this.list=list;
 	}
 	/**
 	 * @return the productId
@@ -28,8 +28,8 @@ public class Product {
 	/**
 	 * @return the services
 	 */
-	public ArrayList<Service> getServices() {
-		return services;
+	public ArrayList<T> getList() {
+		return list;
 	}
 
 	

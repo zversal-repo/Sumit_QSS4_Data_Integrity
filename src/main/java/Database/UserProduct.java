@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import TablesStatusCode.UserProductStatus;
+import TablesStatusCode.ProductStatus;
 
 //Functions return null if Exception occurs during query execution
 public class UserProduct {
@@ -22,7 +22,7 @@ public class UserProduct {
 	// Function for getting all products for every user
 	public static HashMap<Long, ArrayList<Long>> getProducts() throws IOException, SQLException {
 
-		String query = "SELECT DISTINCT user_id,product_id FROM user_product";
+		String query = "SELECT DISTINCT user_id,product_id FROM user_product ORDER BY user_id,product_id";
 		return Utilities.getMap(query, "user_id", "product_id", 1L, 1L);
 
 	}
@@ -44,7 +44,7 @@ public class UserProduct {
 		String query = "SELECT m3.* FROM (SELECT *,MAX(transaction_id) AS m2 FROM user_product WHERE creation_time < NOW() AND user_id = "
 				+ user_id
 				+ " GROUP BY product_id)m1 INNER JOIN user_product AS m3 ON m3.user_id=m1.user_id AND m1.product_id=m3.product_id AND m1.m2 = m3.transaction_id WHERE m3.status="
-				+ String.valueOf(UserProductStatus.Access.getStatus()) + " ORDER BY product_id;";
+				+ String.valueOf(ProductStatus.Access.getStatus()) + " ORDER BY product_id;";
 
 		return Utilities.getList(query, "product_id", 1L);
 

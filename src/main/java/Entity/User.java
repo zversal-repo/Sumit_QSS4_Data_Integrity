@@ -2,16 +2,16 @@ package Entity;
 
 import java.util.ArrayList;
 
-public class User {
+public class User<T> {
 
 	private Long userId;
 	private Integer status;
-	private ArrayList<Long> products;
+	private ArrayList<T> list;
 	
-	public User(Long userId,Integer status,ArrayList<Long> products){
+	public User(Long userId,Integer status,ArrayList<T> list){
 		this.userId=userId;
 		this.status=status;
-		this.products=products;
+		this.list=list;
 	}
 
 	/**
@@ -31,15 +31,15 @@ public class User {
 	/**
 	 * @return the products
 	 */
-	public ArrayList<Long> getProducts() {
-		return products;
+	public ArrayList<T> getList() {
+		return list;
 	}
 	
 	@Override
 	public String toString() {
 		String string= "User_id: "+userId+" with status "+status+" has :\n";
-		for(Long product:products) {
-			string=string+product+"  ";
+		for(T item:list) {
+			string=string+item+"  ";
 		}
 		return string;
 	}
