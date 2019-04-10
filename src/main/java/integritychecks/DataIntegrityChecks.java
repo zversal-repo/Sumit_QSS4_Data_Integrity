@@ -1,4 +1,4 @@
-package IntegrityChecks;
+package integritychecks;
 
 import java.io.IOException;
 import java.sql.SQLException;
@@ -7,55 +7,51 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import Database.AgreementService;
-import Database.AgreementSignDates;
-import Database.Approvals;
-import Database.UserProduct;
-import Database.Users;
-import Entity.Agreement;
-import Entity.Product;
-import Entity.User;
-import TablesStatusCode.AgreementStatus;
-import TablesStatusCode.ApprovalStatus;
-import TablesStatusCode.ProductStatus;
-import TablesStatusCode.UserStatus;
+import database.AgreementService;
+import database.AgreementSignDates;
+import database.Approvals;
+import database.UserProduct;
+import database.Users;
+import utilities.beans.Agreement;
+import utilities.beans.Product;
+import utilities.beans.User;
+import utilities.tablestatuscode.AgreementStatus;
+import utilities.tablestatuscode.ApprovalStatus;
+import utilities.tablestatuscode.DataFirmId;
+import utilities.tablestatuscode.ProductStatus;
+import utilities.tablestatuscode.UserStatus;
 
 public class DataIntegrityChecks {
 
 	/*
-	 * Function return map of data_firm_id=3 active users as key and list of
-	 * products as value which they don't have out of {1,2,7,8}
-	 */
+	 * Returns an ArrayList of User object that can then be used to accessed
+	 * multiple fields of User class.
+	 **/
 
 	public static ArrayList<User<Long>> checkForKarmaUsers() throws IOException, SQLException {
 
-		/*
-		 * List of active users object with list of mandatory products they don't have
-		 * to be returned
-		 */
 		ArrayList<User<Long>> list = new ArrayList<>();
 
-		ArrayList<Long> mandatoryProducts = new ArrayList<>(
+		HashSet<Long> mandatoryProducts = new HashSet<>(
 				Arrays.asList(1L, 2L, 7L, 8L)); /* ArrayList for product {1,2,7,8} */
 
-		ArrayList<Long> activeProducts;
-		ArrayList<Long> activeUsers = Users.getActiveUsersForData_firm_id("3");
+		HashSet<Long> activeUsers = Users.getActiveUsersForData_firm_id(String.valueOf(DataFirmId.KARMA.getId()));
+
+		HashMap<Long, HashSet<Long>> activeProducts = UserProduct.getActiveProducts();
 
 		for (Long user : activeUsers) {
 
-			/*
-			 * For each active user fetch the list of active activeProducts Temporary List
-			 */
-			activeProducts = UserProduct.getActiveProductsForUser_id(String.valueOf(user));
+			try {
+				HashSet<Long> activeProductsList = activeProducts.get(user);
+				if (!activeProductsList.containsAll(mandatoryProducts)) {
 
-			/* Check if the activeProducts list contains mandatory activeProducts */
+					HashSet<Long> temp = new HashSet<>(mandatoryProducts);
+					temp.removeAll(activeProductsList);
+					list.add(new User<Long>(user, UserStatus.Active.getStatus(), temp));
 
-			if (!activeProducts.containsAll(mandatoryProducts)) {
-				ArrayList<Long> temp = new ArrayList<>(mandatoryProducts);
-				temp.removeAll(activeProducts);
-
-				list.add(new User<Long>(user, UserStatus.Active.getStatus(), temp));
-
+				}
+			} catch (NullPointerException e) {
+				list.add(new User<Long>(user, UserStatus.Active.getStatus(), mandatoryProducts));
 			}
 
 		}
@@ -88,56 +84,52 @@ public class DataIntegrityChecks {
 	public static ArrayList<User<Product<Agreement>>> checkUnapprovedAgreementsHavingActiveProducts()
 			throws IOException, SQLException {
 
-		/* List to be returned */
 		ArrayList<User<Product<Agreement>>> list = new ArrayList<>();
 
-		/*Map b/w user and their status*/
 		HashMap<Long, Integer> userStatus = Users.getUserStatus();
-
-		/* Map For Relationship b/w product agreements */
-		HashMap<Long, HashSet<Long>> agreements = AgreementService.getAllAgreements();
+		HashMap<Long, HashSet<Long>> activeProducts = UserProduct.getActiveProducts();
+		HashMap<Long, HashSet<Long>> agreements = AgreementService.getProductAgreements();
+		HashMap<Long, HashMap<Long, Integer>> agreementStatus = AgreementSignDates.getAgreementStatus();
 
 		for (Long user : userStatus.keySet()) {
 
-			String user_id = String.valueOf(user);
+			HashSet<Product<Agreement>> tempProducts = new HashSet<>();
 
-			/* Temporary List */
-			ArrayList<Product<Agreement>> tempProducts = new ArrayList<>();
+			try {
+				for (Long product : activeProducts.get(user)) {
 
-			ArrayList<Long> activeProducts = UserProduct.getActiveProductsForUser_id(user_id);
+					HashSet<Agreement> temp = new HashSet<>();
 
-			/* For each active product of particular user */
-			for (Long product : activeProducts) {
+					try {
+						for (Long agreement : agreements.get(product)) {
 
-				/* Temporary List */
-				ArrayList<Agreement> temp = new ArrayList<>();
+							Integer status;
 
-				try {
-					for (Long agreement : agreements.get(product)) {
+							try {
+								status = agreementStatus.get(user).get(agreement);
 
-						String agreement_id = String.valueOf(agreement);
+								if (status != AgreementStatus.Approved.getStatus())
+									temp.add(new Agreement(agreement, "Not approved"));
 
-						Integer status;
-
-						if ((status = AgreementSignDates.getAgreementStatus(user_id, agreement_id)) != null) {
-							if (status != AgreementStatus.Approved.getStatus()) {
-
-								temp.add(new Agreement(agreement, "Not approved"));
-
+							} catch (NullPointerException e) {
+								temp.add(new Agreement(agreement, "Not signed"));
 							}
-						} else {
 
-							temp.add(new Agreement(agreement, "Not signed"));
 						}
 
+					} catch (NullPointerException e) {
+
 					}
-				} catch (NullPointerException e) {
-					/* do nothing */
+
+					if (!temp.isEmpty())
+						tempProducts.add(new Product<Agreement>(product, ProductStatus.Access.getStatus(), temp));
+
 				}
-				if (!temp.isEmpty())
-					tempProducts.add(new Product<Agreement>(product, ProductStatus.Access.getStatus(), temp));
+
+			} catch (NullPointerException e) {
 
 			}
+
 			if (!tempProducts.isEmpty()) {
 				list.add(new User<Product<Agreement>>(user, userStatus.get(user), tempProducts));
 			}
@@ -162,7 +154,7 @@ public class DataIntegrityChecks {
 			System.out.println("No Default case");
 		}
 
-		return null;
+		return list;
 	}
 
 	/*
@@ -171,26 +163,27 @@ public class DataIntegrityChecks {
 	 */
 	public static ArrayList<User<Long>> checkInactiveUsersHavingActiveProducts() throws IOException, SQLException {
 
-		/* List to be returned */
-
 		ArrayList<User<Long>> list = new ArrayList<>();
 
-		/*Map b/w user and their status*/
 		HashMap<Long, Integer> users = Users.getUserStatus();
+		HashMap<Long, HashSet<Long>> activeProducts = UserProduct.getActiveProducts();
 
 		for (Long user : users.keySet()) {
 
 			Integer status = users.get(user);
 
 			if (status != UserStatus.Active.getStatus()) {
+				try {
 
-				String user_id = String.valueOf(user);
-				ArrayList<Long> activeProducts = UserProduct.getActiveProductsForUser_id(user_id);
+					HashSet<Long> activeProductList = activeProducts.get(user);
+					if (!activeProductList.isEmpty()) {
 
-				if (!activeProducts.isEmpty()) {
+						User<Long> tempUser = new User<>(user, status, activeProductList);
+						list.add(tempUser);
+					}
 
-					User<Long> tempUser = new User<>(user, status, activeProducts);
-					list.add(tempUser);
+				} catch (NullPointerException e) {
+
 				}
 			}
 		}
@@ -214,24 +207,16 @@ public class DataIntegrityChecks {
 
 	public static ArrayList<User<Agreement>> checkAgreementStatusAndApprovalsSync() throws IOException, SQLException {
 
-		/*List to be returned*/
 		ArrayList<User<Agreement>> list = new ArrayList<>();
-		
-		/*Map b/w user and their status*/
+
 		HashMap<Long, Integer> userStatus = Users.getUserStatus();
-
-		/*Map b/w user ,their agreements and their status in AgreementSignDates Table*/
 		HashMap<Long, HashMap<Long, Integer>> agreements = AgreementSignDates.getAgreementStatus();
-
-		/*Map b/w user ,their agreements and their status in Approvals Table*/
 		HashMap<Long, HashMap<Long, Boolean>> approvals = Approvals.getApprovalStatus();
-
-		
 
 		for (Long user : approvals.keySet()) {
 
-			/*Temporary List*/
-			ArrayList<Agreement> temp = new ArrayList<>();
+			/* Temporary List */
+			HashSet<Agreement> temp = new HashSet<>();
 
 			for (Long agreement : approvals.get(user).keySet()) {
 

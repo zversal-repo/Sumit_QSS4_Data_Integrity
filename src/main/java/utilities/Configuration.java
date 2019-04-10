@@ -1,12 +1,12 @@
-package ConfigProperties;
+package utilities;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
 public class Configuration {
-	
-	private static Configuration configuration=null;
+
+	private static Configuration configuration = null;
 
 	private String dbSystem;
 	private String database;
@@ -76,10 +76,10 @@ public class Configuration {
 	public String getUsername() {
 		return userName;
 	}
-	
+
 	public static Configuration getInstance() throws IOException {
-		if(configuration==null) {
-			configuration=new Configuration();
+		if (configuration == null) {
+			configuration = new Configuration();
 		}
 		return configuration;
 	}

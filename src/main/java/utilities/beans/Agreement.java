@@ -1,13 +1,13 @@
-package Entity;
+package utilities.beans;
 
 public class Agreement {
-	
+
 	private Long agreemenyId;
 	private String status;
-	
-	public Agreement(Long agreeementId,String status) {
-		this.agreemenyId=agreeementId;
-		this.status=status;
+
+	public Agreement(Long agreeementId, String status) {
+		this.agreemenyId = agreeementId;
+		this.status = status;
 	}
 
 	/**
@@ -23,7 +23,5 @@ public class Agreement {
 	public String getStatus() {
 		return status;
 	}
-	
-	
-	
+
 }

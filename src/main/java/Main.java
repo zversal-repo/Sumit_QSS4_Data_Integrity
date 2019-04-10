@@ -2,25 +2,25 @@
 import java.io.IOException;
 import java.sql.SQLException;
 
-import Connection_DB.Connect;
-import IntegrityChecks.DataIntegrityChecks;
+import integritychecks.DataIntegrityChecks;
+import integritychecks.NanexIntegrityCheck;
+import utilities.Connect;
 
 public class Main {
 
 	public static void main(String[] args) {
 
 		try {
-			
-			DataIntegrityChecks.checkUnapprovedAgreementsHavingActiveProducts();
 
-		} catch(SQLException | IOException e){
+			NanexIntegrityCheck.userIntegrityCheck();
+
+		} catch (SQLException | IOException e) {
 			System.out.println("Cannot complete method invocation due to I/O or SQL Issues.Details are below");
 			e.printStackTrace();
-		}finally {
+		} finally {
 			try {
 				Connect.closeConnection();
-			}
-			catch(SQLException e) {
+			} catch (SQLException e) {
 				/* do nothing */
 			}
 		}

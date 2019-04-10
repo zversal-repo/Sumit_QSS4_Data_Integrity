@@ -1,16 +1,16 @@
-package TablesStatusCode;
+package utilities.tablestatuscode;
 
 public enum UserStatus {
 	Remove(0), WaitUserForm(1), WaitForApproval(2), Disapprove(3), Active(4), Suspended(5), Cancelled(6);
 
-	private final int statusCode;
+	private final int status;
 
-	UserStatus(int statusCode) {
-		this.statusCode = statusCode;
+	UserStatus(int status) {
+		this.status = status;
 	}
 
 	public int getStatus() {
-		return this.statusCode;
+		return status;
 	}
 
 }
