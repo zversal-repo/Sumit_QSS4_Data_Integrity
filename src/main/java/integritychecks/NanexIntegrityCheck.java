@@ -134,13 +134,18 @@ public class NanexIntegrityCheck {
 						boolean flag = true;
 
 						for (Long product : products.keySet()) {
+
 							if (products.get(product) == ProductStatus.Access.getStatus()) {
+
+					
 								flag = false;
 								t.add(product);
 							}
 						}
 						if (!flag) {
+
 							System.out.println("\tUser does n't have all products in waiting state and List of the Active Products are:");
+
 							System.out.print("\t");
 							for (Long j : t) {
 								System.out.print(j + " ,");
