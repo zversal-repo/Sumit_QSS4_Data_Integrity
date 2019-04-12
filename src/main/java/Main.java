@@ -12,7 +12,7 @@ public class Main {
 
 		try {
 
-			NanexIntegrityCheck.userIntegrityCheck();
+			NanexIntegrityCheck.dataIntegrityCheck();
 
 		} catch (SQLException | IOException e) {
 			System.out.println("Cannot complete method invocation due to I/O or SQL Issues.Details are below");

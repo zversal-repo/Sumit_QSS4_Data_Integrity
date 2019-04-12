@@ -183,4 +183,61 @@ public class QueryProcessor {
 
 		return map;
 	}
+	
+	@SuppressWarnings("unchecked")
+	public static <T1, T2, T3,T4> HashMap<T1, HashMap<T2, HashMap<T3,T4>>> getMap(String query, String item1, String item2,
+			String item3,String item4, T1 arg1, T2 arg2, T3 arg3,T4 arg4) throws IOException, SQLException {
+
+		HashMap<T1, HashMap<T2, HashMap<T3,T4>>> map = new HashMap<>();
+
+		try {
+			conn = Connect.getConnection();
+			stmt = conn.createStatement();
+			rs = stmt.executeQuery(query);
+
+			while (rs.next()) {
+				T1 param1 = (T1) rs.getObject(item1);
+				T2 param2 = (T2) rs.getObject(item2);
+				T3 param3 = (T3) rs.getObject(item3);
+				T4 param4 = (T4) rs.getObject(item4);
+
+				if (map.containsKey(param1)) {
+					if(map.get(param1).containsKey(param2)) {
+						
+						map.get(param1).get(param2).put(param3,param4);
+					}
+					else {
+						HashMap<T3, T4> list = new HashMap<>();
+						list.put(param3,param4);
+						map.get(param1).put(param2,list);
+					}
+				} else {
+					HashMap<T2,HashMap<T3,T4>> list = new HashMap<>();
+					HashMap<T3,T4> temp =new HashMap<>();
+					temp.put(param3,param4);
+					list.put(param2,temp);
+					map.put(param1,list);
+				}
+			}
+
+		} finally {
+			if (rs != null) {
+				try {
+					rs.close();
+				} catch (SQLException e) {
+					/* do nothing */
+				}
+
+			}
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					/* do nothing */
+				}
+			}
+		}
+
+		return map;
+	}
 }

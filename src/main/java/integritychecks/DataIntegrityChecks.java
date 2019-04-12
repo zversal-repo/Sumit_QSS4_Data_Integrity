@@ -32,7 +32,7 @@ public class DataIntegrityChecks {
 
 		ArrayList<User<Long>> list = new ArrayList<>();
 
-		HashSet<Long> mandatoryProducts = new HashSet<>(
+		ArrayList<Long> mandatoryProducts = new ArrayList<>(
 				Arrays.asList(1L, 2L, 7L, 8L)); /* ArrayList for product {1,2,7,8} */
 
 		HashSet<Long> activeUsers = Users.getActiveUsersForData_firm_id(String.valueOf(DataFirmId.KARMA.getId()));
@@ -45,7 +45,7 @@ public class DataIntegrityChecks {
 				HashSet<Long> activeProductsList = activeProducts.get(user);
 				if (!activeProductsList.containsAll(mandatoryProducts)) {
 
-					HashSet<Long> temp = new HashSet<>(mandatoryProducts);
+					ArrayList<Long> temp = new ArrayList<>(mandatoryProducts);
 					temp.removeAll(activeProductsList);
 					list.add(new User<Long>(user, UserStatus.Active.getStatus(), temp));
 
@@ -93,12 +93,12 @@ public class DataIntegrityChecks {
 
 		for (Long user : userStatus.keySet()) {
 
-			HashSet<Product<Agreement>> tempProducts = new HashSet<>();
+			ArrayList<Product<Agreement>> tempProducts = new ArrayList<>();
 
 			try {
 				for (Long product : activeProducts.get(user)) {
 
-					HashSet<Agreement> temp = new HashSet<>();
+					ArrayList<Agreement> temp = new ArrayList<>();
 
 					try {
 						for (Long agreement : agreements.get(product)) {
@@ -175,7 +175,7 @@ public class DataIntegrityChecks {
 			if (status != UserStatus.Active.getStatus()) {
 				try {
 
-					HashSet<Long> activeProductList = activeProducts.get(user);
+					ArrayList<Long> activeProductList = new ArrayList<>(activeProducts.get(user));
 					if (!activeProductList.isEmpty()) {
 
 						User<Long> tempUser = new User<>(user, status, activeProductList);
@@ -205,84 +205,67 @@ public class DataIntegrityChecks {
 		return list;
 	}
 
-	public static ArrayList<User<Agreement>> checkAgreementStatusAndApprovalsSync() throws IOException, SQLException {
-
-		ArrayList<User<Agreement>> list = new ArrayList<>();
-
-		HashMap<Long, Integer> userStatus = Users.getUserStatus();
-		HashMap<Long, HashMap<Long, Integer>> agreements = AgreementSignDates.getAgreementStatus();
-		HashMap<Long, HashMap<Long, Boolean>> approvals = Approvals.getApprovalStatus();
-
-		for (Long user : approvals.keySet()) {
-
-			/* Temporary List */
-			HashSet<Agreement> temp = new HashSet<>();
-
-			for (Long agreement : approvals.get(user).keySet()) {
-
-				String string = null;
-
-				Boolean approval = approvals.get(user).get(agreement);
-
-				try {
-
-					int agreementStatus = agreements.get(user).get(agreement);
-
-					if (approval == ApprovalStatus.WAIT_FOR_AGREEMENT.getStatus()) {
-						string = "Wait_for_Agreement state in Approvals table\n";
-						if (agreementStatus == AgreementStatus.Accepted.getStatus()) {
-							string = string + "Accepted state in AgreementSignDates Table";
-						}
-
-						else if (agreementStatus == AgreementStatus.Approved.getStatus()) {
-							string = string + "Approved state in AgreementSignDates Table";
-						}
-
-						else {
-							string = string + "Disapproved state in AgreementSignDates Table";
-						}
-					} else {
-
-						if (agreementStatus == AgreementStatus.Approved.getStatus()) {
-							string = "Wait_for_Approval state in Approvals table\n";
-							string = string + "Approved state in AgreementSignDates Table";
-						}
-
-						else if (agreementStatus == AgreementStatus.Disapproved.getStatus()) {
-							string = "Wait_for_Approval state in Approvals table\n";
-							string = string + "Disapproved state in AgreementSignDates Table";
-						}
-
-					}
-					if (string != null) {
-						temp.add(new Agreement(agreement, string));
-					}
-
-				} catch (NullPointerException e) {
-					/* do nothing */
-				}
-
-			}
-			if (!temp.isEmpty()) {
-				list.add(new User<Agreement>(user, userStatus.get(user), temp));
-			}
-
-		}
-
-		if (!list.isEmpty()) {
-			for (User<Agreement> user : list) {
-				System.out.println("\"" + user.getUserId() + "\" with status" + user.getStatus() + " :{");
-				for (Agreement agreement : user.getList()) {
-					System.out.println("\t\"" + agreement.getAgreemenyId() + "\":\"" + agreement.getStatus() + "\",");
-				}
-				System.out.println("},");
-			}
-			System.out.println();
-		} else {
-			System.out.println("No Default case");
-		}
-
-		return list;
-	}
+	/*
+	 * public static ArrayList<User<Agreement>>
+	 * checkAgreementStatusAndApprovalsSync() throws IOException, SQLException {
+	 * 
+	 * ArrayList<User<Agreement>> list = new ArrayList<>();
+	 * 
+	 * HashMap<Long, Integer> userStatus = Users.getUserStatus(); HashMap<Long,
+	 * HashMap<Long, Integer>> agreements = AgreementSignDates.getAgreementStatus();
+	 * HashMap<Long,HashMap<Long, HashMap<Long, Boolean>>> approvals =
+	 * Approvals.getApprovalStatus();
+	 * 
+	 * for (Long user : approvals.keySet()) {
+	 * 
+	 * Temporary List ArrayList<Agreement> temp = new ArrayList<>();
+	 * 
+	 * for (Long agreement : approvals.get(user).keySet()) {
+	 * 
+	 * String string = null;
+	 * 
+	 * Boolean approval = approvals.get(user).get(agreement);
+	 * 
+	 * try {
+	 * 
+	 * int agreementStatus = agreements.get(user).get(agreement);
+	 * 
+	 * if (approval == ApprovalStatus.WAIT_FOR_AGREEMENT.getStatus()) { string =
+	 * "Wait_for_Agreement state in Approvals table\n"; if (agreementStatus ==
+	 * AgreementStatus.Accepted.getStatus()) { string = string +
+	 * "Accepted state in AgreementSignDates Table"; }
+	 * 
+	 * else if (agreementStatus == AgreementStatus.Approved.getStatus()) { string =
+	 * string + "Approved state in AgreementSignDates Table"; }
+	 * 
+	 * else { string = string + "Disapproved state in AgreementSignDates Table"; } }
+	 * else {
+	 * 
+	 * if (agreementStatus == AgreementStatus.Approved.getStatus()) { string =
+	 * "Wait_for_Approval state in Approvals table\n"; string = string +
+	 * "Approved state in AgreementSignDates Table"; }
+	 * 
+	 * else if (agreementStatus == AgreementStatus.Disapproved.getStatus()) { string
+	 * = "Wait_for_Approval state in Approvals table\n"; string = string +
+	 * "Disapproved state in AgreementSignDates Table"; }
+	 * 
+	 * } if (string != null) { temp.add(new Agreement(agreement, string)); }
+	 * 
+	 * } catch (NullPointerException e) { do nothing }
+	 * 
+	 * } if (!temp.isEmpty()) { list.add(new User<Agreement>(user,
+	 * userStatus.get(user), temp)); }
+	 * 
+	 * }
+	 * 
+	 * if (!list.isEmpty()) { for (User<Agreement> user : list) {
+	 * System.out.println("\"" + user.getUserId() + "\" with status" +
+	 * user.getStatus() + " :{"); for (Agreement agreement : user.getList()) {
+	 * System.out.println("\t\"" + agreement.getAgreemenyId() + "\":\"" +
+	 * agreement.getStatus() + "\","); } System.out.println("},"); }
+	 * System.out.println(); } else { System.out.println("No Default case"); }
+	 * 
+	 * return list; }
+	 */
 
 }

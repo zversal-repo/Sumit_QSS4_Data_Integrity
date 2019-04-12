@@ -12,5 +12,6 @@ public enum AgreementStatus {
 	public int getStatus() {
 		return status;
 	}
+	
 
 }

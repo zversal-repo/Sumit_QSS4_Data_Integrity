@@ -1,13 +1,13 @@
 package utilities.beans;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 
 public class Service {
 
 	private Long serviceId;
-	private HashSet<Agreement> agreements;
+	private ArrayList<Agreement> agreements;
 
-	public Service(Long serviceId, HashSet<Agreement> agreements) {
+	public Service(Long serviceId, ArrayList<Agreement> agreements) {
 
 		this.serviceId = serviceId;
 		this.agreements = agreements;
@@ -23,7 +23,7 @@ public class Service {
 	/**
 	 * @return the agreements
 	 */
-	public HashSet<Agreement> getAgreements() {
+	public ArrayList<Agreement> getAgreements() {
 		return agreements;
 	}
 

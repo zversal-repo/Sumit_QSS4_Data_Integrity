@@ -1,14 +1,16 @@
 package utilities.beans;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+
+import utilities.tablestatuscode.ProductStatus;
 
 public class Product<T> {
 
 	private Long productId;
 	private Integer status;
-	private HashSet<T> list;
+	private ArrayList<T> list;
 
-	public Product(Long productId, Integer status, HashSet<T> list) {
+	public Product(Long productId, Integer status, ArrayList<T> list) {
 		this.productId = productId;
 		this.status = status;
 		this.list = list;
@@ -31,8 +33,17 @@ public class Product<T> {
 	/**
 	 * @return the services
 	 */
-	public HashSet<T> getList() {
+	public ArrayList<T> getList() {
 		return list;
+	}
+	
+	public String getStatusString() {
+		for(ProductStatus productStatus: ProductStatus.values()) {
+			if(status==productStatus.getStatus()) {
+				return productStatus.name();
+			}
+		}
+		return null;
 	}
 
 }

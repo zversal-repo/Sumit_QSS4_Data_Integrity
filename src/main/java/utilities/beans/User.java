@@ -1,14 +1,14 @@
 package utilities.beans;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 
 public class User<T> {
 
 	private Long userId;
 	private Integer status;
-	private HashSet<T> list;
+	private ArrayList<T> list;
 
-	public User(Long userId, Integer status, HashSet<T> list) {
+	public User(Long userId, Integer status, ArrayList<T> list) {
 		this.userId = userId;
 		this.status = status;
 		this.list = list;
@@ -31,7 +31,7 @@ public class User<T> {
 	/**
 	 * @return the products
 	 */
-	public HashSet<T> getList() {
+	public ArrayList<T> getList() {
 		return list;
 	}
 
