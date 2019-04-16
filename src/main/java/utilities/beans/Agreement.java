@@ -2,8 +2,6 @@ package utilities.beans;
 
 public class Agreement {
 
-	
-
 	private Long agreemenyId;
 	private String status;
 
@@ -25,7 +23,7 @@ public class Agreement {
 	public String getStatus() {
 		return status;
 	}
-	
+
 	/**
 	 * @param status the status to set
 	 */

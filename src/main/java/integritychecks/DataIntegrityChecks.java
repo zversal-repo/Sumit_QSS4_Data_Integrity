@@ -3,79 +3,23 @@ package integritychecks;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 
 import database.AgreementService;
 import database.AgreementSignDates;
-import database.Approvals;
+
 import database.UserProduct;
+
 import database.Users;
 import utilities.beans.Agreement;
 import utilities.beans.Product;
 import utilities.beans.User;
 import utilities.tablestatuscode.AgreementStatus;
-import utilities.tablestatuscode.ApprovalStatus;
-import utilities.tablestatuscode.DataFirmId;
 import utilities.tablestatuscode.ProductStatus;
 import utilities.tablestatuscode.UserStatus;
 
 public class DataIntegrityChecks {
-
-	/*
-	 * Returns an ArrayList of User object that can then be used to accessed
-	 * multiple fields of User class.
-	 **/
-
-	public static ArrayList<User<Long>> checkForKarmaUsers() throws IOException, SQLException {
-
-		ArrayList<User<Long>> list = new ArrayList<>();
-
-		ArrayList<Long> mandatoryProducts = new ArrayList<>(
-				Arrays.asList(1L, 2L, 7L, 8L)); /* ArrayList for product {1,2,7,8} */
-
-		HashSet<Long> activeUsers = Users.getActiveUsersForData_firm_id(String.valueOf(DataFirmId.KARMA.getId()));
-
-		HashMap<Long, HashSet<Long>> activeProducts = UserProduct.getActiveProducts();
-
-		for (Long user : activeUsers) {
-
-			try {
-				HashSet<Long> activeProductsList = activeProducts.get(user);
-				if (!activeProductsList.containsAll(mandatoryProducts)) {
-
-					ArrayList<Long> temp = new ArrayList<>(mandatoryProducts);
-					temp.removeAll(activeProductsList);
-					list.add(new User<Long>(user, UserStatus.Active.getStatus(), temp));
-
-				}
-			} catch (NullPointerException e) {
-				list.add(new User<Long>(user, UserStatus.Active.getStatus(), mandatoryProducts));
-			}
-
-		}
-
-		/* Printing the output */
-		if (!list.isEmpty()) {
-
-			System.out.println("OutPut:");
-			for (User<Long> user : list) {
-				System.out.println("User _id :" + user.getUserId() + " does not have following products");
-
-				for (Long product : user.getList()) {
-					System.out.print(product + "  ");
-				}
-				System.out.println("\n");
-			}
-			System.out.println();
-		} else {
-			System.out.println("No Default case");
-		}
-
-		return list;
-
-	}
 
 	/*
 	 * Function to check whether for any non approved product does the product is
@@ -205,67 +149,94 @@ public class DataIntegrityChecks {
 		return list;
 	}
 
-	/*
-	 * public static ArrayList<User<Agreement>>
-	 * checkAgreementStatusAndApprovalsSync() throws IOException, SQLException {
-	 * 
-	 * ArrayList<User<Agreement>> list = new ArrayList<>();
-	 * 
-	 * HashMap<Long, Integer> userStatus = Users.getUserStatus(); HashMap<Long,
-	 * HashMap<Long, Integer>> agreements = AgreementSignDates.getAgreementStatus();
-	 * HashMap<Long,HashMap<Long, HashMap<Long, Boolean>>> approvals =
-	 * Approvals.getApprovalStatus();
-	 * 
-	 * for (Long user : approvals.keySet()) {
-	 * 
-	 * Temporary List ArrayList<Agreement> temp = new ArrayList<>();
-	 * 
-	 * for (Long agreement : approvals.get(user).keySet()) {
-	 * 
-	 * String string = null;
-	 * 
-	 * Boolean approval = approvals.get(user).get(agreement);
-	 * 
-	 * try {
-	 * 
-	 * int agreementStatus = agreements.get(user).get(agreement);
-	 * 
-	 * if (approval == ApprovalStatus.WAIT_FOR_AGREEMENT.getStatus()) { string =
-	 * "Wait_for_Agreement state in Approvals table\n"; if (agreementStatus ==
-	 * AgreementStatus.Accepted.getStatus()) { string = string +
-	 * "Accepted state in AgreementSignDates Table"; }
-	 * 
-	 * else if (agreementStatus == AgreementStatus.Approved.getStatus()) { string =
-	 * string + "Approved state in AgreementSignDates Table"; }
-	 * 
-	 * else { string = string + "Disapproved state in AgreementSignDates Table"; } }
-	 * else {
-	 * 
-	 * if (agreementStatus == AgreementStatus.Approved.getStatus()) { string =
-	 * "Wait_for_Approval state in Approvals table\n"; string = string +
-	 * "Approved state in AgreementSignDates Table"; }
-	 * 
-	 * else if (agreementStatus == AgreementStatus.Disapproved.getStatus()) { string
-	 * = "Wait_for_Approval state in Approvals table\n"; string = string +
-	 * "Disapproved state in AgreementSignDates Table"; }
-	 * 
-	 * } if (string != null) { temp.add(new Agreement(agreement, string)); }
-	 * 
-	 * } catch (NullPointerException e) { do nothing }
-	 * 
-	 * } if (!temp.isEmpty()) { list.add(new User<Agreement>(user,
-	 * userStatus.get(user), temp)); }
-	 * 
-	 * }
-	 * 
-	 * if (!list.isEmpty()) { for (User<Agreement> user : list) {
-	 * System.out.println("\"" + user.getUserId() + "\" with status" +
-	 * user.getStatus() + " :{"); for (Agreement agreement : user.getList()) {
-	 * System.out.println("\t\"" + agreement.getAgreemenyId() + "\":\"" +
-	 * agreement.getStatus() + "\","); } System.out.println("},"); }
-	 * System.out.println(); } else { System.out.println("No Default case"); }
-	 * 
-	 * return list; }
-	 */
+	public static ArrayList<Product<Agreement>> productCheck(Long user, HashMap<Long, Integer> products,
+			HashMap<Long, HashSet<Long>> agreementList, HashMap<Long, HashMap<Long, Integer>> agreementStatusList,
+			HashMap<Long, HashMap<Long, HashMap<Long, Boolean>>> approvalsStatusList) throws IOException, SQLException {
 
+		ArrayList<Product<Agreement>> list = new ArrayList<>();
+
+		try {
+			for (Long product : products.keySet()) {
+
+				Integer productStatus = products.get(product);
+				ArrayList<Agreement> temp1 = new ArrayList<>();
+
+				try {
+					for (Long agreement : agreementList.get(product)) {
+
+						if (productStatus == ProductStatus.Access.getStatus()) {
+							String string = "";
+							try {
+								Integer agreementStatus = agreementStatusList.get(user).get(agreement);
+
+								if (agreementStatus != null
+										&& agreementStatus != AgreementStatus.Approved.getStatus()) {
+
+									string = String.valueOf(agreementStatus);
+									temp1.add(new Agreement(agreement, string));
+								}
+							} catch (NullPointerException e) {
+
+							}
+
+							try {
+								boolean b = approvalsStatusList.get(user).get(product).containsKey(agreement);
+
+								if (!temp1.isEmpty() && temp1.get(temp1.size() - 1).getAgreemenyId() == agreement
+										&& b) {
+									string = string + " but Agreement is still present in approvals table";
+									temp1.get(temp1.size() - 1).setStatus(string);
+								} else {
+									string = string + " is still present in approvals table";
+									temp1.add(new Agreement(agreement, string));
+								}
+
+							} catch (NullPointerException e) {
+
+							}
+
+						} else if (productStatus == ProductStatus.Cancelled.getStatus()) {
+							try {
+								boolean b = approvalsStatusList.get(user).get(product).containsKey(agreement);
+								if (b) {
+									temp1.add(new Agreement(agreement, " is still present in approvals table"));
+								}
+							} catch (NullPointerException e) {
+
+							}
+						} else {
+							try {
+								list.add(new Product<Agreement>(product, productStatus, null));
+								Integer agreementStatus = agreementStatusList.get(user).get(agreement);
+
+								boolean b = approvalsStatusList.get(user).get(product).containsKey(agreement);
+
+								if (!b && agreementStatus != null
+										&& agreementStatus == AgreementStatus.Approved.getStatus()) {
+									temp1.add(new Agreement(agreement,
+											"Agreement should be in approvals table or shoould not be approved yet "));
+								}
+
+							} catch (NullPointerException e) {
+
+							}
+						}
+					}
+					if (!temp1.isEmpty()) {
+						list.add(new Product<Agreement>(product, productStatus, temp1));
+					}
+				} catch (NullPointerException e) {
+					// e.printStackTrace();
+				}
+
+			}
+
+		} catch (NullPointerException e) {
+			System.out.println("User does not have any products");
+			return null;
+		}
+
+		return list;
+
+	}
 }

@@ -13,11 +13,4 @@ public enum UserStatus {
 		return status;
 	}
 	
-	public String getStatusString(int status) {
-		for(UserStatus userStatus:UserStatus.values())
-			if(status==userStatus.getStatus())
-				return userStatus.name();
-		return null;
-	}
-
 }

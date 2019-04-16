@@ -65,13 +65,13 @@ public class Users {
 				+ UserType.PRO.getType() + " ORDER BY user_id";
 		return QueryProcessor.getList(query, "user_id", 1L);
 	}
-	
+
 	public static HashSet<Long> getNonProUsers(String data_firm_id) throws SQLException, IOException {
 		String query = "SELECT user_id FROM users WHERE data_firm_id = " + data_firm_id + " AND user_type ="
 				+ UserType.NONPRO.getType() + " ORDER BY user_id";
 		return QueryProcessor.getList(query, "user_id", 1L);
 	}
-	
+
 	public static HashSet<Long> getDataFeedUsers(String data_firm_id) throws SQLException, IOException {
 		String query = "SELECT user_id FROM users WHERE data_firm_id = " + data_firm_id + " AND user_type ="
 				+ UserType.DATAFEED.getType() + " ORDER BY user_id";

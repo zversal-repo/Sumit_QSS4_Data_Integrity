@@ -36,10 +36,10 @@ public class Product<T> {
 	public ArrayList<T> getList() {
 		return list;
 	}
-	
+
 	public String getStatusString() {
-		for(ProductStatus productStatus: ProductStatus.values()) {
-			if(status==productStatus.getStatus()) {
+		for (ProductStatus productStatus : ProductStatus.values()) {
+			if (status == productStatus.getStatus()) {
 				return productStatus.name();
 			}
 		}

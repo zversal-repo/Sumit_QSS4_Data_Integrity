@@ -14,27 +14,19 @@ import database.UserProduct;
 import database.Users;
 import utilities.beans.Agreement;
 import utilities.beans.Product;
-import utilities.beans.User;
-import utilities.tablestatuscode.AgreementStatus;
 import utilities.tablestatuscode.DataFirmId;
 import utilities.tablestatuscode.ProductStatus;
 import utilities.tablestatuscode.UserStatus;
 
 public class NanexIntegrityCheck {
 
-	private static HashMap<Long, Integer> userStatusList;
-	private static HashMap<Long, HashMap<Long, Integer>> productList;
-	private static HashMap<Long, HashSet<Long>> agreementList;
-	private static HashMap<Long, HashMap<Long, Integer>> agreementStatusList;
-	private static HashMap<Long, HashMap<Long, HashMap<Long, Boolean>>> approvalsStatusList;
-
 	public static void dataIntegrityCheck() throws IOException, SQLException {
 
-		userStatusList = Users.getUserStatus();
-		productList = UserProduct.getProductCurrentStatus();
-		agreementList = AgreementService.getProductAgreements();
-		agreementStatusList = AgreementSignDates.getAgreementStatus();
-		approvalsStatusList = Approvals.getApprovalStatus();
+		HashMap<Long, Integer> userStatusList = Users.getUserStatus();
+		HashMap<Long, HashMap<Long, Integer>> productList = UserProduct.getProductCurrentStatus();
+		HashMap<Long, HashSet<Long>> agreementList = AgreementService.getProductAgreements();
+		HashMap<Long, HashMap<Long, Integer>> agreementStatusList = AgreementSignDates.getAgreementStatus();
+		HashMap<Long, HashMap<Long, HashMap<Long, Boolean>>> approvalsStatusList = Approvals.getApprovalStatus();
 
 		ArrayList<Long> datafeedusersList = new ArrayList<>(
 				Users.getDataFeedUsers(String.valueOf(DataFirmId.NANEX.getId())));
@@ -137,14 +129,14 @@ public class NanexIntegrityCheck {
 
 							if (products.get(product) == ProductStatus.Access.getStatus()) {
 
-					
 								flag = false;
 								t.add(product);
 							}
 						}
 						if (!flag) {
 
-							System.out.println("\tUser does n't have all products in waiting state and List of the Active Products are:");
+							System.out.println(
+									"\tUser does n't have all products in waiting state and List of the Active Products are:");
 
 							System.out.print("\t");
 							for (Long j : t) {
@@ -159,7 +151,7 @@ public class NanexIntegrityCheck {
 
 				}
 
-				temp = productCheck(user, productList.get(user));
+				temp = DataIntegrityChecks.productCheck(user, productList.get(user),agreementList,agreementStatusList,approvalsStatusList);
 
 				if (temp != null && !temp.isEmpty()) {
 					for (Product<Agreement> product : temp) {
@@ -181,96 +173,6 @@ public class NanexIntegrityCheck {
 			}
 			System.out.println("\n\n");
 		}
-
-	}
-
-	public static ArrayList<Product<Agreement>> productCheck(Long user, HashMap<Long, Integer> products)
-			throws IOException, SQLException {
-
-		ArrayList<Product<Agreement>> list = new ArrayList<>();
-
-		try {
-			for (Long product : products.keySet()) {
-
-				Integer productStatus = products.get(product);
-				ArrayList<Agreement> temp1 = new ArrayList<>();
-
-				try {
-					for (Long agreement : agreementList.get(product)) {
-
-						if (productStatus == ProductStatus.Access.getStatus()) {
-							String string = "";
-							try {
-								Integer agreementStatus = agreementStatusList.get(user).get(agreement);
-
-								if (agreementStatus != null
-										&& agreementStatus != AgreementStatus.Approved.getStatus()) {
-
-									string = String.valueOf(agreementStatus);
-									temp1.add(new Agreement(agreement, string));
-								}
-							} catch (NullPointerException e) {
-
-							}
-
-							try {
-								boolean b = approvalsStatusList.get(user).get(product).containsKey(agreement);
-
-								if (!temp1.isEmpty() && temp1.get(temp1.size() - 1).getAgreemenyId() == agreement
-										&& b) {
-									string = string + " but Agreement is still present in approvals table";
-									temp1.get(temp1.size() - 1).setStatus(string);
-								} else {
-									string = string + " is still present in approvals table";
-									temp1.add(new Agreement(agreement, string));
-								}
-
-							} catch (NullPointerException e) {
-
-							}
-
-						} else if (productStatus == ProductStatus.Cancelled.getStatus()) {
-							try {
-								boolean b = approvalsStatusList.get(user).get(product).containsKey(agreement);
-								if (b) {
-									temp1.add(new Agreement(agreement, " is still present in approvals table"));
-								}
-							} catch (NullPointerException e) {
-
-							}
-						} else {
-							try {
-								list.add(new Product<Agreement>(product, productStatus, null));
-								Integer agreementStatus = agreementStatusList.get(user).get(agreement);
-
-								boolean b = approvalsStatusList.get(user).get(product).containsKey(agreement);
-
-								if (!b && agreementStatus != null
-										&& agreementStatus == AgreementStatus.Approved.getStatus()) {
-									temp1.add(new Agreement(agreement,
-											"Agreement should be in approvals table or shoould not be approved yet "));
-								}
-
-							} catch (NullPointerException e) {
-
-							}
-						}
-					}
-					if (!temp1.isEmpty()) {
-						list.add(new Product<Agreement>(product, productStatus, temp1));
-					}
-				} catch (NullPointerException e) {
-					// e.printStackTrace();
-				}
-
-			}
-
-		} catch (NullPointerException e) {
-			System.out.println("User does not have any products");
-			return null;
-		}
-
-		return list;
 
 	}
 

@@ -9,9 +9,6 @@ import java.util.HashSet;
 
 import org.junit.Test;
 
-import database.QueryProcessor;
-import utilities.tablestatuscode.UserStatus;
-
 public class Users {
 	
 	

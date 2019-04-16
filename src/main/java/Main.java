@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 
 import integritychecks.DataIntegrityChecks;
+import integritychecks.KarmaIntegrityCheck;
 import integritychecks.NanexIntegrityCheck;
 import utilities.Connect;
 
@@ -12,7 +13,7 @@ public class Main {
 
 		try {
 
-			NanexIntegrityCheck.dataIntegrityCheck();
+			KarmaIntegrityCheck.dataIntegrityCheck();
 
 		} catch (SQLException | IOException e) {
 			System.out.println("Cannot complete method invocation due to I/O or SQL Issues.Details are below");
