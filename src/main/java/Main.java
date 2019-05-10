@@ -2,9 +2,7 @@
 import java.io.IOException;
 import java.sql.SQLException;
 
-import integritychecks.DataIntegrityChecks;
 import integritychecks.KarmaIntegrityCheck;
-import integritychecks.NanexIntegrityCheck;
 import utilities.Connect;
 
 public class Main {
